@@ -1,36 +1,31 @@
 .card-container {
     max-width: 85%;
-    margin: 2rem auto;
+    margin: 1rem auto;
     justify-content: center;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
 }
 
-.left-btn {
-    padding: 0.5rem;
-    border-radius: 9999px;
-}
-
-.right-btn {
+.left-btn, .right-btn {
     padding: 0.5rem;
     border-radius: 9999px;
 }
 
 @media (min-width: 640px) {
-    .left-btn {
-        margin-left: 1rem;
+    .left-btn-wrapper {
+        padding-left: 1.5rem;
     }
 }
 
 @media (min-width: 640px) {
-    .right-btn {
-        margin-right: 1rem;
+    .right-btn-wrapper {
+        padding-right: 1.5rem;
     }
 }
 
 .card-wrapper {
-    margin: 1.4rem;
+    padding: 1.4rem;
     opacity: 0;
     transform: scale(0.95);
     pointer-events: none;

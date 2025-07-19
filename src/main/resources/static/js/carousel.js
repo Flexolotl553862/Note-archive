@@ -3,10 +3,13 @@ $(function () {
     const container = document.querySelector('.card-container');
     const notes = Array.from(container.children).filter(n => n.classList.contains('card-wrapper'));
     const n = notes.length;
-    const gap = 3, width = 16, height = 10;
-    const cols = Math.floor((document.querySelector('.card-menu').offsetWidth - 80) / ((width + gap) * 16));
-    const rows = Math.floor((document.querySelector('.card-menu').offsetHeight - 80) / ((height + gap) * 16));
-    const k = Math.min(rows * cols, n);
+    const width = document.querySelector('.card-wrapper').offsetWidth;
+    const height = document.querySelector('.card-wrapper').offsetHeight;
+    const containerWidth = document.querySelector('.card-menu').offsetWidth - 2 * document.querySelector('.left-btn-wrapper').offsetWidth;
+
+    const cols = Math.floor((containerWidth - 40) / width);
+    const rows = Math.floor((document.querySelector('.card-menu').offsetHeight - 40) / height);
+    const k = rows * cols;
 
     const showGroup = (start) => {
         notes.forEach(note => note.classList.remove('visible'));

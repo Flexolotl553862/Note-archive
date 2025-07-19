@@ -23,6 +23,23 @@
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
 }
 
+.card__title {
+    color: var(--main-color);
+    font-weight: 900;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 640px) {
+    .card {
+        height: 10rem;
+        width: 14rem;
+    }
+
+    .card__title {
+        font-size: 1rem;
+    }
+}
+
 .card::before {
     content: '';
     width: 99%;
@@ -51,12 +68,6 @@
 
 .card__img {
     width: 100%;
-}
-
-.card__title {
-    color: var(--main-color);
-    font-weight: 900;
-    font-size: 1.2rem;
 }
 
 .card__subtitle {
