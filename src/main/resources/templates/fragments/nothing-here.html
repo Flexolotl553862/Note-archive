@@ -1,0 +1,50 @@
+<div th:fragment="nothing-here(title, text, linkMsg, link)">
+    <link rel="stylesheet" th:href="@{/css/nothing-here.css}">
+    <style>
+        .nothing-here {
+            background-color: rgba(40, 40, 50, 0.85);
+        }
+    </style>
+    <div class="nothing-here max-w-sm p-6 border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+        <div class="loader">
+            <div class="loaderMiniContainer">
+                <div class="barContainer">
+                    <span class="bar"></span>
+                    <span class="bar bar2"></span>
+                </div>
+                <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 101 114"
+                        class="svgIcon"
+                >
+                    <circle
+                            stroke-width="7"
+                            stroke="black"
+                            transform="rotate(36.0692 46.1726 46.1727)"
+                            r="29.5497"
+                            cy="46.1727"
+                            cx="46.1726"
+                    ></circle>
+                    <line
+                            stroke-width="7"
+                            stroke="black"
+                            y2="111.784"
+                            x2="97.7088"
+                            y1="67.7837"
+                            x1="61.7089"
+                    ></line>
+                </svg>
+            </div>
+        </div>
+        <a href="#">
+            <h5 class="mb-2 text-2xl font-semibold tracking-tight text-gray-200 dark:text-white" th:text="${title}"></h5>
+        </a>
+        <p class="mb-3 font-normal text-gray-500 dark:text-gray-400" th:text="${text}"></p>
+        <a th:href="${link}" class="inline-flex font-medium items-center text-blue-600 hover:underline" th:text="${linkMsg}">
+            <svg class="w-3 h-3 ms-2.5 rtl:rotate-[270deg]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11v4.833A1.166 1.166 0 0 1 13.833 17H2.167A1.167 1.167 0 0 1 1 15.833V4.167A1.166 1.166 0 0 1 2.167 3h4.618m4.447-2H17v5.768M9.111 8.889l7.778-7.778"/>
+            </svg>
+        </a>
+    </div>
+</div>

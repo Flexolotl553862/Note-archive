@@ -1,0 +1,22 @@
+<div th:fragment="logo">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+    <style>
+        .logo {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem;
+            color: white;
+        }
+    </style>
+    <a href="/home" class="logo flex items-center space-x-3 rtl:space-x-reverse">
+<!--        <svg width="80" height="80" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">-->
+<!--            <circle cx="30" cy="30" r="30" fill="#4a90e2" />-->
+<!--            <text x="22" y="38" font-family="Georgia, serif" font-size="35" fill="white">∫</text>-->
+<!--        </svg>-->
+        <span class="self-center text-4xl font-semibold whitespace-nowrap dark:text-white">
+            Note-archive
+        </span>
+<!--        <span class="self-center text-4xl font-semibold whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">-->
+<!--            Note-archive-->
+<!--        </span>-->
+    </a>
+</div>

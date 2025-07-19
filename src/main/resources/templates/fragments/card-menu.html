@@ -1,0 +1,41 @@
+<div th:fragment="card-menu" class="card-menu flex flex-col flex-grow card-menu">
+    <link rel="stylesheet" th:href="@{/css/card.css}">
+    <link rel="stylesheet" th:href="@{/css/card-container.css}">
+
+    <div th:if="${!notes.isEmpty()}">
+        <div th:replace="~{fragments/search :: search}"></div>
+    </div>
+
+    <div class="flex flex-grow items-center">
+        <button class="hover:bg-gray-600 left-btn">
+            <svg class="w-6 h-6 text-white dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                 width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="m15 19-7-7 7-7"/>
+            </svg>
+        </button>
+
+        <div class="card-container flex flex-wrap relative">
+            <div th:if="${notes.isEmpty()}">
+                <div th:replace="~{fragments/nothing-here :: nothing-here('There is nothing here yet', 'Try to add your first note.', 'add note', '/add/note')}"></div>
+            </div>
+
+            <div th:each="note : ${notes}" th:id="${note.title} + '-frame'" class="card-wrapper">
+                <div th:if="${note.startSemester} == ${note.endSemester}">
+                    <div th:replace="~{fragments/card :: card(title=${note.title}, subtitle=${'semester ' + note.startSemester}, id=${note.id})}"></div>
+                </div>
+                <div th:unless="${note.startSemester} == ${note.endSemester}">
+                    <div th:replace="~{fragments/card :: card(title=${note.title}, subtitle=${'semesters ' + note.startSemester + '-' + note.endSemester}, id=${note.id})}"></div>
+                </div>
+            </div>
+        </div>
+
+        <button class="hover:bg-gray-600 right-btn">
+            <svg class="w-6 h-6 text-white dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                 width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="m9 5 7 7-7 7"/>
+            </svg>
+        </button>
+    </div>
+</div>

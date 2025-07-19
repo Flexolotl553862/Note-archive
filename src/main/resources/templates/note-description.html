@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Note-archive</title>
+    <link rel="stylesheet" th:href="@{/css/background.css}">
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+    <link rel="stylesheet" th:href="@{/css/fonts/Poppins.css}">
+    <link rel="stylesheet" th:href="@{/css/fonts/Montserrat.css}">
+    <link rel="stylesheet" th:href="@{/css/github-markdown.css}">
+    <link rel="stylesheet" th:href="@{/css/button.css}">
+    <script src="/js/jquery/dist/jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body class="min-h-screen flex flex-col overflow-x-hidden">
+<div th:replace="~{fragments/navbar}"></div>
+<main class="flex-grow">
+    <div class="w-[85%] mx-auto">
+        <div th:replace="~{fragments/breadcrumb :: breadcrumb('')}"></div>
+
+        <style>
+            .description {
+                padding: 2rem;
+                border-radius: 15px;
+                background-color: rgba(40, 40, 50, 0.85);
+            }
+        </style>
+
+        <div class="text-white description" id="description">
+            <div id="loader" th:insert="~{fragments/loader}"></div>
+
+            <div th:if="${note.author.id == user.id}">
+                <div th:replace="~{fragments/generate-markdown}"></div>
+            </div>
+
+            <div id="content" class="hidden">
+                <div id="hs-show-hide-collapse-heading"
+                     class="hs-collapse hidden w-full overflow-hidden transition-[height] duration-300"
+                     aria-labelledby="hs-show-hide-collapse">
+                    <div class="markdown-body" id="markdown-body"></div>
+                </div>
+                <p class="mt-2 flex justify-center">
+                    <button type="button"
+                            class="hs-collapse-toggle inline-flex items-center gap-x-1 text-sm font-semibold rounded-lg border border-transparent text-white hover:text-blue-600"
+                            id="hs-show-hide-collapse" aria-expanded="false"
+                            aria-controls="hs-show-hide-collapse-heading"
+                            data-hs-collapse="#hs-show-hide-collapse-heading">
+                        <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+                             height="24"
+                             fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="m17 21-5-4-5 4V3.889a.92.92 0 0 1 .244-.629.808.808 0 0 1 .59-.26h8.333a.81.81 0 0 1 .589.26.92.92 0 0 1 .244.63V21Z"/>
+                        </svg>
+                        <div class="hs-collapse-open:hidden text-lg">Read full description</div>
+                    </button>
+                </p>
+            </div>
+        </div>
+        <a type="button"
+           class="mt-5 w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
+           th:href="${'/note/' + note.id}">
+            View Resources
+        </a>
+    </div>
+</main>
+<div th:replace="~{fragments/footer}"></div>
+<script src="/assets/flowbite.min.js"></script>
+<script src="/assets/@preline/collapse/index.js"></script>
+<script src="/assets/markdown-it/dist/markdown-it.js"></script>
+<script th:inline="javascript">
+    let noteId = /*[[${note.id}]]*/ '';
+    const url = '/api/note/' + noteId + '/description'
+    const markdown = document.getElementById('markdown-body');
+    const loader = document.getElementById('loader');
+    const md = window.markdownit();
+    const content = document.getElementById('content')
+    const form = document.getElementById('gen-form');
+    const textarea = document.getElementById('generate-form-' + noteId);
+    const csrf = document.getElementsByName('_csrf')[0].value;
+    const collapse = document.getElementById('hs-show-hide-collapse-heading');
+    const toggle = document.getElementById('hs-show-hide-collapse');
+
+    $(function () {
+        if (localStorage.getItem('collapse') === "open") {
+            collapse.classList.remove('hidden')
+            collapse.classList.add('open')
+            toggle.classList.add('open')
+        }
+
+        toggle.addEventListener('click', function () {
+            setTimeout(() => {
+                const newState = collapse.classList.contains('open') ? 'open' : 'closed';
+                localStorage.setItem('collapse', newState);
+            }, 50);
+        })
+
+        $.ajax({
+            url: url,
+            type: "GET",
+            success: function (data) {
+                content.classList.remove('hidden');
+                markdown.innerHTML = md.render(data);
+                loader.classList.add('hidden');
+            },
+            error: function () {
+                refresh();
+                loader.classList.add('hidden');
+                if (form !== null) {
+                    form.classList.remove('hidden');
+                } else {
+                    content.innerHTML = '<div class="text-white text-xl flex justify-center">There is nothing here yet.</div>'
+                    content.classList.remove('hidden');
+                }
+            }
+        })
+
+        if (form !== null) {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                form.classList.add('hidden');
+                loader.classList.remove('hidden');
+                console.log(textarea);
+                $.ajax({
+                    url: url + '/generate',
+                    type: "POST",
+                    data: {
+                        "_csrf": csrf,
+                        "data": textarea.value
+                    },
+                    success: function (data) {
+                        console.log(data);
+                        loader.classList.add('hidden');
+                        content.classList.remove('hidden');
+                        markdown.innerHTML = md.render(data);
+                    },
+                    error: function () {
+                        markdown.innerHTML = '<div class="text-red-500 text-xl flex justify-center">Error. Could not create description.</div>'
+                        loader.classList.add('hidden');
+                    }
+                })
+            });
+        }
+    })
+</script>
+<script src="/js/clear-errors.js"></script>
+</body>
+</html>

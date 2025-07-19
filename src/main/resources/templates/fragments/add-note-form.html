@@ -1,0 +1,56 @@
+<div th:fragment="add-note-form" class="card md:max-w-xl mx-auto max-w-[75%] mb-[2.5rem]">
+    <link rel="stylesheet" href="/css/gradient-border.css">
+    <div class="card-info">
+        <div class="glass-form py-6 px-8 mx-auto x-full rounded-2xl">
+            <h2 class="mb-4 text-xl font-bold text-white">Add a new note</h2>
+            <form method="post" th:action="@{/add/note}" th:object="${noteForm}" enctype="multipart/form-data">
+                <div class="grid gap-4 sm:grid-cols-2 sm:gap-4">
+                    <div class="sm:col-span-2">
+                        <div th:replace="~{fragments/form-field :: form-field('title', 'Title', 'text', 'save-input')}"></div>
+                    </div>
+                    <div class="w-full">
+                        <div th:replace="~{fragments/form-field :: form-field('startSemester', 'Start Semester', 'number', 'save-input')}"></div>
+                    </div>
+                    <div class="w-full">
+                        <div th:replace="~{fragments/form-field :: form-field('endSemester', 'End Semester', 'number', 'save-input')}"></div>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <div th:replace="~{fragments/file-input :: file-input('file', 'If you upload ZIP, the folder structure will be preserved. Otherwise, it will be saved as a single file')}"></div>
+                    </div>
+                    <script>
+                        const inputs = document.querySelectorAll('.my-input');
+                        const fileInputs = document.querySelectorAll('.my-file-input');
+
+                        document.addEventListener("DOMContentLoaded", function() {
+                            inputs.forEach(input => {
+                                input.value = localStorage.getItem(input.id) || "";
+                                const error = input.nextElementSibling.nextElementSibling;
+
+                                input.addEventListener('input', function () {
+                                    localStorage.setItem(event.target.name, event.target.value);
+
+                                    if (input.value.trim() !== '') {
+                                        error.classList.add('hidden');
+                                        input.classList.remove('bg-red-100', 'border', 'border-red-500');
+                                        input.classList.replace('text-red-900', 'text-gray-900')
+                                    }
+                                });
+                            });
+
+                            fileInputs.forEach(input => {
+                                const error = input.nextElementSibling;
+
+                                input.addEventListener('input', function () {
+                                    error.classList.add('hidden');
+                                });
+                            });
+                        });
+                    </script>
+                </div>
+                <button type="submit" class="inline-flex w-full items-center justify-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-blue-700 rounded-lg dark:focus:ring-primary-900 hover:bg-blue-800">
+                    Submit
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Note-archive</title>
+    <link rel="stylesheet" th:href="@{/css/background.css}">
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+    <link rel="stylesheet" th:href="@{/css/fonts/Poppins.css}">
+    <link rel="stylesheet" th:href="@{/css/fonts/Montserrat.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body class="min-h-screen flex flex-col overflow">
+<div th:insert="~{fragments/logo}" class="my-6 justify-items-center"></div>
+
+<main class="flex-grow flex items-center">
+    <div class="card md:max-w-xl mx-auto max-w-[75%] md:mb-[2.5rem]">
+        <link rel="stylesheet" href="/css/gradient-border.css">
+        <div class="card-info">
+            <div class="glass-form py-6 px-8 mx-auto x-full rounded-2xl">
+                <h2 class="mb-6 text-xl font-bold text-white">Register</h2>
+                <form th:object="${registerForm}" method="post" th:action="@{/register}" id="register-form">
+                    <div class="grid gap-4 sm:grid-cols-2 sm:gap-4">
+
+                        <div class="w-full relative">
+                            <div th:replace="~{fragments/form-field.html :: form-field('firstName', 'First name', 'text', 'save-input')}"></div>
+                        </div>
+                        <div class="w-full relative">
+                            <div th:replace="~{fragments/form-field.html :: form-field('lastName', 'Last name', 'text', 'save-input')}"></div>
+                        </div>
+                        <div class="sm:col-span-2 relative">
+                            <div th:replace="~{fragments/form-field.html :: form-field('email', 'Email address', 'text', 'save-input')}"></div>
+                        </div>
+                        <div class="sm:col-span-2 relative">
+                            <div th:replace="~{fragments/form-field.html :: form-field('login', 'Login', 'text', 'save-input')}"></div>
+                        </div>
+
+                        <style>
+                            .toggle {
+                                top: 0.9rem;
+                            }
+                        </style>
+
+                        <div class="sm:col-span-2 relative">
+                            <div th:replace="~{fragments/form-field.html :: form-field('password', 'Password', 'text', 'save-input')}"></div>
+                            <button type="button" data-hs-toggle-password='{
+                              "target": "#password"
+                            }'
+                                    class="toggle absolute end-0 flex items-center z-20 px-3 cursor-pointer text-gray-400 focus:outline-hidden focus:text-blue-600 dark:text-neutral-600 dark:focus:text-blue-500">
+                                <svg class="shrink-0 size-3.5" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path class="hs-password-active:hidden" d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                                    <path class="hs-password-active:hidden"
+                                          d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                                    <path class="hs-password-active:hidden"
+                                          d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                                    <line class="hs-password-active:hidden" x1="2" x2="22" y1="2" y2="22"></line>
+                                    <path class="hidden hs-password-active:block"
+                                          d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                    <circle class="hidden hs-password-active:block" cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="sm:col-span-2 relative">
+                            <input type="text" id="password-confirmation"
+                                   class="my-input block rounded-lg px-2.5 pb-1.5 pt-4 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                   placeholder=" "/>
+                            <label for="password-confirmation"
+                                   class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-3 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto">Password
+                                Confirmation</label>
+                            <p th:id="password-confirmation-error"
+                               class="mt-1 text-xs text-red-600 dark:text-red-500 hidden">
+                                <span class="font-medium"></span>
+                            </p>
+                            <button type="button" data-hs-toggle-password='{
+                              "target": "#password-confirmation"
+                            }'
+                                    class="toggle absolute end-0 flex items-center z-20 px-3 cursor-pointer text-gray-400 focus:outline-hidden focus:text-blue-600 dark:text-neutral-600 dark:focus:text-blue-500">
+                                <svg class="shrink-0 size-3.5" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path class="hs-password-active:hidden" d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                                    <path class="hs-password-active:hidden"
+                                          d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                                    <path class="hs-password-active:hidden"
+                                          d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                                    <line class="hs-password-active:hidden" x1="2" x2="22" y1="2" y2="22"></line>
+                                    <path class="hidden hs-password-active:block"
+                                          d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                    <circle class="hidden hs-password-active:block" cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <p class="text-sm text-white">
+                                Already have an account? <a href="/login"
+                                                            class="font-medium text-blue-600 hover:underline">
+                                Sign in</a>
+                            </p>
+                        </div>
+                    </div>
+                    <button type="submit"
+                            href="/register"
+                            class="inline-flex w-full items-center justify-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-blue-700 rounded-lg dark:focus:ring-primary-900 hover:bg-blue-800">
+                        Create an account
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer}"></div>
+<script src="/assets/flowbite.min.js"></script>
+<script src="/assets/@preline/toggle-password/index.js"></script>
+<script src="/js/clear-errors.js"></script>
+</body>
+</html>

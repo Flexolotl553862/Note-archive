@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Note-archive</title>
+    <link rel="stylesheet" th:href="@{/css/background.css}">
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+    <link rel="stylesheet" th:href="@{/css/tv.css}">
+    <link rel="stylesheet" th:href="@{/css/fonts/Poppins.css}">
+    <link rel="stylesheet" th:href="@{/css/fonts/Montserrat.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body class="min-h-screen flex flex-col">
+<div th:replace="~{fragments/navbar}"></div>
+
+<main class="flex-grow flex flex-col">
+    <div class="mt-auto">
+        <div th:replace="~{fragments/not-found-tv :: file-not-found(${message})}"></div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer}"></div>
+<script src="/assets/flowbite.min.js"></script>
+</body>
+</html>

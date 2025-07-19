@@ -1,0 +1,45 @@
+.card {
+    --background: linear-gradient(to left, #f7ba2b 0%, #ea5358 100%);
+    padding: 5px;
+    border-radius: 1rem;
+    background: var(--background);
+    position: relative;
+    z-index: 1;
+    /*display: inline-block;*/
+}
+
+.card::after {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    transform: scale(0.95);
+    filter: blur(25px);
+    background: var(--background);
+    transition: opacity 0.5s;
+    border-radius: 1rem;
+}
+
+.card-info {
+    --color: #181818;
+    background: var(--color);
+    color: var(--color);
+    /*display: flex;*/
+    justify-content: center;
+    align-items: center;
+    border-radius: 0.7rem;
+    flex-direction: column;
+}
+
+/* Hover effects */
+.card:hover::after {
+    opacity: 0;
+}
+
+.card:hover .card-info {
+    color: #f7ba2b;
+    transition: color 1s;
+}

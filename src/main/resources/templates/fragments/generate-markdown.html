@@ -1,0 +1,21 @@
+<div th:fragment="generate-markdown">
+    <link rel="stylesheet" th:href="@{/css/button.css}">
+    <form id="gen-form" th:method="post" th:action="@{generate}" class="hidden border-white rounded-2xl">
+        <div class="self-center text-lg font-semibold whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400 flex justify-center mb-3">Generate Description with AI</div>
+        <div class="rounded-t-lg bg-transparent">
+            <label th:for="${'generate-form-' + note.id}" class="sr-only bg-transparent">Your description</label>
+            <textarea th:id="${'generate-form-' + note.id}" th:name="${'generate-form-' + note.id}" rows="4"
+                      class="p-4 border-2 rounded-2xl border-gray-700 save-input bg-transparent w-full text-sm border-0 focus:ring-0 text-white placeholder-gray-400"
+                      placeholder="Write free form text. It can be a link to Google table, Names of a tutors or general information about a course. We will generate a Markdown file of description using this information"></textarea>
+        </div>
+        <div type="submit" class="flex items-center py-2 border-gray-600 border-gray-200">
+            <button class="ai-button">
+                <svg height="24" width="24" fill="#FFFFFF" viewBox="0 0 24 24" data-name="Layer 1" id="Layer_1" class="sparkle">
+                    <path d="M10,21.236,6.755,14.745.264,11.5,6.755,8.255,10,1.764l3.245,6.491L19.736,11.5l-6.491,3.245ZM18,21l1.5,3L21,21l3-1.5L21,18l-1.5-3L18,18l-3,1.5ZM19.333,4.667,20.5,7l1.167-2.333L24,3.5,21.667,2.333,20.5,0,19.333,2.333,17,3.5Z"></path>
+                </svg>
+
+                <span class="text">Generate</span>
+            </button>
+        </div>
+    </form>
+</div>

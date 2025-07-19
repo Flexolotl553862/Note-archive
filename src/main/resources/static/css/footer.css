@@ -1,0 +1,28 @@
+.footer {
+    /*background: #333333;*/
+    /*--gap: 5em;*/
+    /*--line: 1px;*/
+    /*--color: rgba(255, 255, 255, 0.2);*/
+
+    /*background-image: linear-gradient(*/
+    /*        -90deg,*/
+    /*        transparent calc(var(--gap) - var(--line)),*/
+    /*        var(--color) calc(var(--gap) - var(--line) + 1px),*/
+    /*        var(--color) var(--gap)*/
+    /*),*/
+    /*linear-gradient(*/
+    /*        0deg,*/
+    /*        transparent calc(var(--gap) - var(--line)),*/
+    /*        var(--color) calc(var(--gap) - var(--line) + 1px),*/
+    /*        var(--color) var(--gap)*/
+    /*);*/
+    /*background-size: var(--gap) var(--gap);*/
+    /*height: 200%;*/
+    border-top: dashed gray;
+    border-bottom: none;
+    /*background-image: url("../img/grass1.png");*/
+    /*background-size: contain;*/
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: bottom center;
+}
