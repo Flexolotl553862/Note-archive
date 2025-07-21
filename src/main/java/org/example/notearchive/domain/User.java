@@ -1,9 +1,7 @@
 package org.example.notearchive.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,7 +14,7 @@ import java.util.List;
 @Setter
 @Entity
 @NoArgsConstructor
-@Table(name = "app_user")
+@Table(name = "app_user", indexes = @Index(name = "multi-index", columnList = "login, email, name"))
 public class User extends AbstractEntity implements UserDetails {
     public enum Role {
         ROLE_ADMIN,
@@ -24,20 +22,14 @@ public class User extends AbstractEntity implements UserDetails {
         ROLE_WRITER
     }
 
-    @NotBlank
     @Column(unique = true)
     private String login;
 
-    @NotBlank
     @Column(unique = true)
     private String email;
 
-    @NotBlank
-    @Size(min = 5)
     private String passwordSha;
 
-    @NotBlank
-    @Size(min = 5, max = 20)
     private String name;
 
     @NotNull
@@ -59,9 +51,5 @@ public class User extends AbstractEntity implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
-    }
-
-    public Long getId() {
-        return super.getId();
     }
 }
