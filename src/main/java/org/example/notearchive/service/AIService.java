@@ -13,7 +13,8 @@ public class AIService {
 
     public String generateMarkdown(String question) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Сгенерируй markdown на основании предоставленных мной данных, он должен быть красивым и красочным, в качестве ответа отдай только саму разметку, никаких пояснений писать не надо");
+        String preparedRequest = "Сгенерируй markdown на основании предоставленных мной данных, он должен быть красивым и красочным, в качестве ответа отдай только саму разметку, никаких пояснений писать не надо";
+        sb.append(preparedRequest);
         String AI_MODEL = "gemini-2.5-flash";
         return client.models.generateContent(AI_MODEL, sb.append(question).toString(), null).text();
     }

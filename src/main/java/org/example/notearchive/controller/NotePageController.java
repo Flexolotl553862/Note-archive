@@ -5,8 +5,9 @@ import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.dto.CreateDirectoryForm;
 import org.example.notearchive.dto.FileForm;
 import org.example.notearchive.exception.StorageException;
-import org.example.notearchive.repository.StorageEntryRepository;
+import org.example.notearchive.filestorage.FileStorage;
 import org.example.notearchive.repository.NoteRepository;
+import org.example.notearchive.repository.StorageEntryRepository;
 import org.example.notearchive.service.AIService;
 import org.example.notearchive.service.StorageService;
 import org.springframework.http.HttpHeaders;
@@ -29,18 +30,21 @@ public class NotePageController {
     private final NoteRepository noteRepository;
     private final StorageEntryRepository storageEntryRepository;
     private final StorageService storageService;
+    private final FileStorage fileStorage;
     private final AIService aiService;
 
     public NotePageController(
             NoteRepository noteRepository,
             StorageEntryRepository storageEntryRepository,
             StorageService storageService,
-            AIService aiService
+            AIService aiService,
+            FileStorage fileStorage
     ) {
         this.noteRepository = noteRepository;
         this.storageEntryRepository = storageEntryRepository;
         this.storageService = storageService;
         this.aiService = aiService;
+        this.fileStorage = fileStorage;
     }
 
     @ModelAttribute
@@ -88,7 +92,7 @@ public class NotePageController {
                     .findFirst()
                     .orElseThrow();
 
-            File descriptionFile = storageService.getEntryContent(descriptionEntry);
+            File descriptionFile = fileStorage.getEntryContent(descriptionEntry);
             content = Files.readString(descriptionFile.toPath());
         } catch (NullPointerException | NoSuchElementException | StorageException | IOException ignored) {
             return ResponseEntity.notFound().build();

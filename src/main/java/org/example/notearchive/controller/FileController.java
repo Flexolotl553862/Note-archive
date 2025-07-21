@@ -5,6 +5,8 @@ import org.apache.tika.Tika;
 import org.example.notearchive.dto.CreateDirectoryForm;
 import org.example.notearchive.dto.FileForm;
 import org.example.notearchive.exception.StorageException;
+import org.example.notearchive.filestorage.FileStorage;
+import org.example.notearchive.repository.StorageEntryRepository;
 import org.example.notearchive.service.StorageService;
 import org.example.notearchive.validator.CreateDirectoryValidator;
 import org.example.notearchive.validator.CreateFileValidator;
@@ -29,14 +31,18 @@ public class FileController {
     private final StorageService storageService;
     private final CreateDirectoryValidator createDirectoryValidator;
     private final CreateFileValidator createFileValidator;
+    private final FileStorage fileStorage;
+    private final StorageEntryRepository storageEntryRepository;
 
     public FileController(
             StorageService storageService,
             CreateDirectoryValidator createDirectoryValidator,
-            CreateFileValidator createFileValidator) {
+            CreateFileValidator createFileValidator, FileStorage fileStorage, StorageEntryRepository storageEntryRepository) {
         this.storageService = storageService;
         this.createDirectoryValidator = createDirectoryValidator;
         this.createFileValidator = createFileValidator;
+        this.fileStorage = fileStorage;
+        this.storageEntryRepository = storageEntryRepository;
     }
 
     @ModelAttribute
@@ -62,9 +68,11 @@ public class FileController {
     @PreAuthorize("@userService.canChangeEntry(#id, authentication)")
     public String deleteEntry(@RequestParam("id") long id, @RequestParam("name") String name, Model model) {
         try {
-            storageService.deleteEntryById(id);
+            fileStorage.deleteEntry(storageEntryRepository.findById(id).orElseThrow(
+                    () -> new StorageException("Could not find entry", null)
+            ));
         } catch (StorageException e) {
-            return setError( "Could not delete " + name, model);
+            return setError("Could not delete " + name, model);
         }
         return setOk("Successfully deleted.", name + " has been deleted.", model);
     }
@@ -81,9 +89,11 @@ public class FileController {
             return setError(bindingResult.getFieldError().getDefaultMessage(), model);
         }
         try {
-            storageService.createDirectory(
+            fileStorage.createDirectory(
                     createDirectoryForm.getDirectoryName(),
-                    createDirectoryForm.getParentId()
+                    storageEntryRepository.findById(createDirectoryForm.getParentId()).orElseThrow(
+                            () -> new StorageException("Could not find parent entry", null)
+                    )
             );
         } catch (StorageException ignored) {
             return setError("Could not create " + createDirectoryForm.getDirectoryName() + ".", model);
@@ -133,7 +143,9 @@ public class FileController {
     private ResponseEntity<Resource> getFileForResponse(long id, String action, RedirectAttributes redirectAttributes) {
         Tika tika = new Tika();
         try {
-            File file = storageService.getEntryContent(id);
+            File file = fileStorage.getEntryContent(storageEntryRepository.findById(id).orElseThrow(
+                    () -> new StorageException("Could not find entry", null)
+            ));
             Resource resource = new FileSystemResource(file);
             return ResponseEntity.ok()
                     .header(
