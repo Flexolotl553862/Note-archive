@@ -4,7 +4,6 @@ import org.apache.tika.Tika;
 import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.exception.StorageException;
 import org.example.notearchive.repository.StorageEntryRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,8 +26,8 @@ public class SystemStorage implements FileStorage {
     private final String storagePath;
     private final StorageEntryRepository storageEntryRepository;
 
-    public SystemStorage(@Value("${storage.path}") String storagePath, StorageEntryRepository storageEntryRepository) {
-        this.storagePath = storagePath;
+    public SystemStorage(StorageEntryRepository storageEntryRepository) {
+        this.storagePath = System.getenv("STORAGE_PATH");
         this.storageEntryRepository = storageEntryRepository;
     }
 
