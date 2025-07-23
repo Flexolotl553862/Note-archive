@@ -34,7 +34,7 @@
                 <div th:if="${i % 2 == 0}" class="flex items-center">
                     <a th:href="${'/folder/' + path[i / 2]}"
                        class="inline-flex items-center text-sm font-medium text-white hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
-                        <div th:text="${path[i / 2].name}"></div>
+                        <span th:text="${path[i / 2].name}" class="whitespace-nowrap"></span>
                     </a>
                 </div>
                 <span th:if="${i % 2 != 0}" class="mx-2 text-gray-400">/</span>

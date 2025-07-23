@@ -36,6 +36,6 @@ public class HomePageController {
     @GetMapping("/my/notes")
     public String myNote(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         model.addAttribute("notes", noteRepository.findAllByAuthor_Login(userDetails.getUsername()));
-        return "home";
+        return "my-notes";
     }
 }

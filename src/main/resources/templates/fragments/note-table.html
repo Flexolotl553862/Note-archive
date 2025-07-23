@@ -1,0 +1,71 @@
+<div th:fragment="note-table" id="note-table" class="mx-auto w-[85%]">
+    <div class="relative overflow-x-auto shadow-md rounded-lg mb-[3rem]">
+        <style>
+            @media (max-width: 640px) {
+                .desktop-only {
+                    display: none;
+                }
+            }
+        </style>
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <thead class="bg-gray-700 text-xs uppercase text-white">
+            <tr>
+                <th scope="col" class="px-6 py-3">
+                    Note
+                </th>
+                <th scope="col" class="px-6 py-3 maybe-hide desktop-only">
+                    Created at
+                </th>
+                <th scope="col" class="flex justify-end px-6 py-3">
+                    Action
+                </th>
+            </tr>
+            </thead>
+
+            <tbody>
+
+            <tr th:each="note, iter : ${notes}"
+                th:class="${iter.last} ?
+                'even:bg-gray-800 odd:bg-gray-900' :
+                'border-b even:bg-gray-800 odd:bg-gray-900 border-gray-700' ">
+
+                <th scope="row" class="px-6 py-4 font-normal text-white">
+                    <a th:href="${'/note/' + note.id + '/description'}"
+                       class="flex items-center space-x-2">
+                        <svg class="w-6 h-6 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" d="M6 2a2 2 0 0 0-2 2v15a3 3 0 0 0 3 3h12a1 1 0 1 0 0-2h-2v-2h2a1 1 0 0 0 1-1V4a2 2 0 0 0-2-2h-8v16h5v2H7a1 1 0 1 1 0-2h1V2H6Z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-white font-medium hover:text-blue-600 text-md" th:text="${note.title}"></span>
+                    </a>
+                </th>
+
+                <td th:text="${#dates.format(note.createdAt, 'yyyy-dd-MM HH:mm')}" class="px-6 py-4 text text-gray-400 desktop-only"></td>
+
+                <!-- download and delete buttons -->
+                <td class="py-4 text-right">
+                    <div class="flex justify-end">
+                        <a th:href="${'/edit/note/' + note.id}">
+                            <svg class="w-6 h-6 text-white mr-2 hover:text-blue-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
+                            </svg>
+                        </a>
+
+                        <button class="delete-button"
+                                th:id="${note.id}"
+                                th:name="${note.title}"
+                                href="/delete/note">
+                            <svg class="w-5 h-5 text-white mr-3 hover:text-blue-600" aria-hidden="true"
+                                 xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                                 viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

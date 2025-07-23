@@ -1,5 +1,6 @@
 package org.example.notearchive.filestorage;
 
+import org.example.notearchive.domain.Note;
 import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.exception.StorageException;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +17,8 @@ public interface FileStorage {
     File getEntryContent(StorageEntry entry) throws StorageException;
 
     void deleteEntry(StorageEntry entry) throws StorageException;
+
+    void deleteNote(Note note) throws StorageException;
 
     void createDirectory(String directoryName, StorageEntry parent) throws StorageException;
 }

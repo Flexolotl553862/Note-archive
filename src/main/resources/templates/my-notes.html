@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Note-archive</title>
+    <link rel="stylesheet" th:href="@{/css/background.css}">
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+    <link rel="stylesheet" th:href="@{/css/fonts/Poppins.css}">
+    <link rel="stylesheet" th:href="@{/css/fonts/Montserrat.css}">
+    <link rel="stylesheet" href="/assets/@preline/select/variants.css">
+    <link rel="icon" th:href="@{/img/favicon.ico}" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="/js/toastify-js/src/toastify.js"></script>
+    <script src="/js/jquery/dist/jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body class="min-h-screen flex flex-col overflow">
+<div th:replace="~{fragments/navbar}"></div>
+
+<main class="flex flex-grow">
+    <div th:replace="~{fragments/note-table}"></div>
+
+    <div th:replace="~{fragments/delete-modal}"></div>
+</main>
+
+<div th:replace="~{fragments/footer}"></div>
+<script src="/assets/flowbite.min.js"></script>
+<script src="/assets/preline/dist/combobox.js"></script>
+<script src="/js/clear-errors.js"></script>
+<script src="/js/delete-modal.js"></script>
+</body>
+</html>

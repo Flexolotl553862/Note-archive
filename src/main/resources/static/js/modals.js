@@ -47,6 +47,7 @@ $(function () {
 
     buttons.forEach(button => {
         button.addEventListener('click', function () {
+            console.log("ok")
             deleteModal.show();
             document.getElementById('delete-msg').textContent = 'Are you sure you want to delete ' + button.name + '?'
             localStorage.setItem('delete', button.id);

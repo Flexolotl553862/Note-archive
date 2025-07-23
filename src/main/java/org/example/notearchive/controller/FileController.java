@@ -2,16 +2,19 @@ package org.example.notearchive.controller;
 
 import jakarta.validation.Valid;
 import org.apache.tika.Tika;
+import org.example.notearchive.domain.Note;
 import org.example.notearchive.dto.CreateDirectoryForm;
 import org.example.notearchive.dto.FileForm;
 import org.example.notearchive.exception.StorageException;
 import org.example.notearchive.filestorage.FileStorage;
+import org.example.notearchive.repository.NoteRepository;
 import org.example.notearchive.repository.StorageEntryRepository;
 import org.example.notearchive.service.StorageService;
 import org.example.notearchive.validator.CreateDirectoryValidator;
 import org.example.notearchive.validator.CreateFileValidator;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +28,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Controller
 public class FileController {
@@ -33,16 +37,18 @@ public class FileController {
     private final CreateFileValidator createFileValidator;
     private final FileStorage fileStorage;
     private final StorageEntryRepository storageEntryRepository;
+    private final NoteRepository noteRepository;
 
     public FileController(
             StorageService storageService,
             CreateDirectoryValidator createDirectoryValidator,
-            CreateFileValidator createFileValidator, FileStorage fileStorage, StorageEntryRepository storageEntryRepository) {
+            CreateFileValidator createFileValidator, FileStorage fileStorage, StorageEntryRepository storageEntryRepository, NoteRepository noteRepository) {
         this.storageService = storageService;
         this.createDirectoryValidator = createDirectoryValidator;
         this.createFileValidator = createFileValidator;
         this.fileStorage = fileStorage;
         this.storageEntryRepository = storageEntryRepository;
+        this.noteRepository = noteRepository;
     }
 
     @ModelAttribute
@@ -75,6 +81,22 @@ public class FileController {
             return setError("Could not delete " + name, model);
         }
         return setOk("Successfully deleted.", name + " has been deleted.", model);
+    }
+
+    @PostMapping("/delete/note")
+    @PreAuthorize("@userService.isNoteAuthor(#id, authentication)")
+    public String deleteNote(@RequestParam("id") long id, Model model) {
+        Note note = noteRepository.findById(id).orElse(null);
+        if (note == null) {
+            return setError("Could not find note.", model);
+        }
+        try {
+            fileStorage.deleteNote(note);
+            noteRepository.delete(note);
+        } catch (StorageException e) {
+            return setError("Could not delete note.", model);
+        }
+        return setOk("Successfully deleted.", note.getTitle() + " has been deleted.", model);
     }
 
     @PostMapping("/folder/create")
@@ -146,14 +168,19 @@ public class FileController {
             File file = fileStorage.getEntryContent(storageEntryRepository.findById(id).orElseThrow(
                     () -> new StorageException("Could not find entry", null)
             ));
-            Resource resource = new FileSystemResource(file);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(tika.detect(file)));
+            headers.setContentDisposition(ContentDisposition
+                    .builder(action)
+                    .filename(file.getName(), StandardCharsets.UTF_8)
+                    .build()
+            );
+
             return ResponseEntity.ok()
-                    .header(
-                            HttpHeaders.CONTENT_DISPOSITION,
-                            action + ";filename=\"" + file.getName() + "\""
-                    )
-                    .contentType(MediaType.parseMediaType(tika.detect(file)))
-                    .body(resource);
+                    .headers(headers)
+                    .body(new FileSystemResource(file));
+
         } catch (StorageException e) {
             redirectAttributes.addFlashAttribute("message", e.getMessage());
         } catch (IOException e) {

@@ -7309,7 +7309,7 @@ var DefaultInstanceOptions = {
     override: true,
 };
 var Modal = /** @class */ (function () {
-    function Modal(targetEl, options, instanceOptions) {
+    function Modal(targetEl) {
         if (targetEl === void 0) { targetEl = null; }
         if (options === void 0) { options = Default; }
         if (instanceOptions === void 0) { instanceOptions = DefaultInstanceOptions; }

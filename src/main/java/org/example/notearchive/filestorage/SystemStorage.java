@@ -1,8 +1,10 @@
 package org.example.notearchive.filestorage;
 
 import org.apache.tika.Tika;
+import org.example.notearchive.domain.Note;
 import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.exception.StorageException;
+import org.example.notearchive.repository.NoteRepository;
 import org.example.notearchive.repository.StorageEntryRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
@@ -25,12 +27,15 @@ public class SystemStorage implements FileStorage {
 
     private final String storagePath;
     private final StorageEntryRepository storageEntryRepository;
+    private final NoteRepository noteRepository;
 
-    public SystemStorage(StorageEntryRepository storageEntryRepository) {
+    public SystemStorage(StorageEntryRepository storageEntryRepository, NoteRepository noteRepository) {
         this.storagePath = System.getenv("STORAGE_PATH");
         this.storageEntryRepository = storageEntryRepository;
+        this.noteRepository = noteRepository;
     }
 
+    @Override
     public void createDirectory(String name, StorageEntry parent) throws StorageException {
         StorageEntry entry = new StorageEntry(
                 name,
@@ -47,6 +52,7 @@ public class SystemStorage implements FileStorage {
         storageEntryRepository.save(entry);
     }
 
+    @Override
     public File getEntryContent(StorageEntry entry) throws StorageException {
         if (entry.getPath() == null || entry.getPath().isEmpty()) {
             throw new StorageException("Could not find path to file: " + entry.getName(), null);
@@ -58,11 +64,19 @@ public class SystemStorage implements FileStorage {
         return file;
     }
 
+    @Override
     public void deleteEntry(StorageEntry entry) {
         FileSystemUtils.deleteRecursively(new File(storagePath, entry.getPath()));
         storageEntryRepository.delete(entry);
     }
 
+    @Override
+    public void deleteNote(Note note) {
+        FileSystemUtils.deleteRecursively(new File(storagePath, note.getContent().getPath()));
+        noteRepository.delete(note);
+    }
+
+    @Override
     public void saveAsFile(InputStream data, String name, StorageEntry root) throws StorageException {
         try {
             Path filePath = Path.of(storagePath, root.getPath(), name);
@@ -84,6 +98,7 @@ public class SystemStorage implements FileStorage {
         }
     }
 
+    @Override
     public boolean tryToSaveAsNestedFolders(MultipartFile file, StorageEntry root)
             throws StorageException {
         ZipInputStream zis;

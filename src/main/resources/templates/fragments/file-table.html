@@ -1,4 +1,11 @@
 <div th:fragment="file-table(folder)" id="file-table">
+    <style>
+        @media (max-width: 640px) {
+            .desktop-only {
+                display: none;
+            }
+        }
+    </style>
     <div class="relative overflow-x-auto shadow-md rounded-lg mb-[3rem]">
         <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
             <thead class="bg-gray-700 text-xs uppercase text-white">
@@ -6,7 +13,7 @@
                 <th scope="col" class="px-6 py-3">
                     Name
                 </th>
-                <th scope="col" class="px-6 py-3">
+                <th scope="col" class="px-6 py-3 desktop-only">
                     Last change
                 </th>
                 <th scope="col" class="flex justify-end px-5 py-3">
@@ -22,7 +29,7 @@
                 class="border-b bg-gray-900 border-gray-700"
                 th:class="${folder.children == null || folder.children.isEmpty} ? 'bg-gray-900' : 'border-b bg-gray-900 border-gray-700' ">
 
-                <th scope="row" class="px-6 py-4 font-normal text-gray-900 whitespace-nowrap dark:text-white">
+                <th scope="row" class="px-6 py-4 font-normal text-gray-900 dark:text-white">
                     <a th:href="${parent}" class="flex items-center space-x-2">
                         <div class="flex items-center space-x-2">
                             <svg aria-hidden="true" focusable="false" class="text-blue-400" width="16" height="16"
@@ -33,7 +40,7 @@
                         </div>
                     </a>
                 </th>
-                <td class="px-6 py-4"></td>
+                <td class="px-6 py-4 desktop-only"></td>
                 <td class="py-4 text-right inline-flex justify-end w-full">
                     <button th:if="${note.author.id == user.id}" id="new-file">
                         <svg class="hover:text-blue-600 mr-3 w-5 h-5 text-white" aria-hidden="true"
@@ -62,7 +69,7 @@
                 'border-b even:bg-gray-800 odd:bg-gray-900 border-gray-700' ">
 
                 <!-- file or directory -->
-                <th scope="row" class="px-6 py-4 font-normal text-white whitespace-nowrap">
+                <th scope="row" class="px-6 py-4 font-normal text-white">
                     <a th:href="${entry.isDirectory} ? ${'/folder/' + entry.id} : ${'/file/' + entry.id}"
                        class="flex items-center space-x-2">
                         <svg th:if="${entry.isDirectory}" aria-hidden="true" focusable="false" class="text-blue-400"
@@ -81,7 +88,7 @@
                 </th>
 
                 <!-- last modification time -->
-                <td th:text="${#dates.format(entry.lastModified, 'yyyy-dd-MM HH:mm')}" class="px-6 py-4 text text-gray-400"></td>
+                <td th:text="${#dates.format(entry.lastModified, 'yyyy-dd-MM HH:mm')}" class="px-6 py-4 text text-gray-400 desktop-only"></td>
 
                 <!-- download and delete buttons -->
                 <td class="py-4 text-right">
@@ -96,7 +103,7 @@
                             </svg>
                         </a>
 
-                        <button th:if="${note.author.id == user.id}" data-modal-target="popup-modal" data-modal-toggle="popup-modal" th:id="${entry.id}"
+                        <button th:if="${note.author.id == user.id}" th:id="${entry.id}"
                                 th:name="${entry.name}" class="delete-button">
                             <svg class="w-5 h-5 text-white mr-3 hover:text-blue-600" aria-hidden="true"
                                  xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
