@@ -42,7 +42,7 @@
                 </th>
                 <td class="px-6 py-4 desktop-only"></td>
                 <td class="py-4 text-right inline-flex justify-end w-full">
-                    <button th:if="${note.author.id == user.id}" id="new-file">
+                    <button th:if="${#lists.contains(note.editors, user)}" id="new-file">
                         <svg class="hover:text-blue-600 mr-3 w-5 h-5 text-white" aria-hidden="true"
                              xmlns="http://www.w3.org/2000/svg" width="20"
                              height="20" fill="none" viewBox="0 0 24 24">
@@ -51,7 +51,7 @@
                         </svg>
                     </button>
 
-                    <button th:if="${note.author.id == user.id}" id="new-directory">
+                    <button th:if="${#lists.contains(note.editors, user)}" id="new-directory">
                         <svg class="hover:text-blue-600 mr-3 w-5 h-5 text-white" aria-hidden="true"
                              xmlns="http://www.w3.org/2000/svg" width="24"
                              height="24" fill="none" viewBox="0 0 24 24">
@@ -103,7 +103,7 @@
                             </svg>
                         </a>
 
-                        <button th:if="${note.author.id == user.id}" th:id="${entry.id}"
+                        <button th:if="${#lists.contains(note.editors, user)}" th:id="${entry.id}"
                                 th:name="${entry.name}" class="delete-button">
                             <svg class="w-5 h-5 text-white mr-3 hover:text-blue-600" aria-hidden="true"
                                  xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"

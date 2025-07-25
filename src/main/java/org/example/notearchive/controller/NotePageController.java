@@ -104,7 +104,7 @@ public class NotePageController {
     }
 
     @PostMapping("/api/note/{id}/description/generate")
-    @PreAuthorize("@userService.isNoteAuthor(#id, authentication)")
+    @PreAuthorize("@userService.isNoteEditor(#id, authentication)")
     public ResponseEntity<String> generateDescription(@PathVariable long id, @RequestParam("data") String data) {
         Optional<Note> note = noteRepository.findById(id);
         try {

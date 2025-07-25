@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Note-archive</title>
+    <link rel="stylesheet" th:href="@{/css/background.css}">
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+    <link rel="stylesheet" th:href="@{/css/fonts/Poppins.css}">
+    <link rel="stylesheet" th:href="@{/css/fonts/Montserrat.css}">
+    <link rel="stylesheet" href="/assets/@preline/select/variants.css">
+    <link rel="icon" th:href="@{/img/favicon.ico}" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="/js/toastify-js/src/toastify.js"></script>
+    <script src="/js/jquery/dist/jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body class="min-h-screen flex flex-col overflow">
+<div th:replace="~{fragments/navbar}"></div>
+
+<main class="flex flex-grow">
+
+    <div th:replace="~{fragments/new-link-modal}"></div>
+
+    <div class="mx-auto w-[85%]">
+        <div class="relative overflow-x-auto shadow-md rounded-lg mb-[3rem]">
+<!--            <form th:action="@{/change/links}" method="post">-->
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+                       id="default-table">
+                    <thead class="bg-gray-700 text-xs uppercase text-white">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">
+                            For
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Expiry date
+                        </th>
+                        <th scope="col" class="flex justify-end px-6 py-3 items-center">
+                            Link
+                            <button id="new-file-create" data-modal-target="timepicker-modal" data-modal-toggle="timepicker-modal"
+                                    class="text-white ml-6">
+                                <svg class="-ms-1 w-5 h-5 bg-blue-600 rounded-md hover:bg-blue-700" fill="currentColor" viewBox="0 0 20 20"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd"
+                                          d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                                          clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    <tr th:each="link, iter : ${links}"
+                        th:class="${iter.last} ?
+                'even:bg-gray-800 odd:bg-gray-900' :
+                'border-b even:bg-gray-800 odd:bg-gray-900 border-gray-700' ">
+                    </tr>
+                    </tbody>
+                </table>
+<!--            </form>-->
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer}"></div>
+<script src="/assets/flowbite.min.js"></script>
+<script src="/js/clear-errors.js"></script>
+</body>
+</html>

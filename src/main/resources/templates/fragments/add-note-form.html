@@ -1,11 +1,11 @@
 <div th:fragment="add-note-form" class="card md:max-w-xl mx-auto max-w-[75%] mb-[2.5rem]">
     <link rel="stylesheet" href="/css/gradient-border.css">
     <div class="card-info">
-        <div class="glass-form py-6 px-8 mx-auto x-full rounded-2xl">
+        <div class="glass-form py-6 px-4 mx-auto x-full rounded-2xl">
             <h2 class="mb-4 text-xl font-bold text-white">Add a new note</h2>
             <form method="post" th:action="@{/add/note}" th:object="${noteForm}" enctype="multipart/form-data">
-                <div class="grid gap-4 sm:grid-cols-2 sm:gap-4">
-                    <div class="sm:col-span-2">
+                <div class="grid gap-4 grid-cols-2 sm:gap-4">
+                    <div class="col-span-2">
                         <div th:replace="~{fragments/form-field :: form-field('title', 'Title', 'text', 'save-input')}"></div>
                     </div>
                     <div class="w-full">
@@ -14,7 +14,7 @@
                     <div class="w-full">
                         <div th:replace="~{fragments/form-field :: form-field('endSemester', 'End Semester', 'number', 'save-input')}"></div>
                     </div>
-                    <div class="sm:col-span-2">
+                    <div class="col-span-2">
                         <div th:replace="~{fragments/file-input :: file-input('file', 'If you upload ZIP, the folder structure will be preserved. Otherwise, it will be saved as a single file')}"></div>
                     </div>
                     <script>

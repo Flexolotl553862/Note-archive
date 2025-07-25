@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Note-archive</title>
+    <link rel="stylesheet" th:href="@{/css/background.css}">
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+    <link rel="stylesheet" th:href="@{/css/fonts/Poppins.css}">
+    <link rel="stylesheet" th:href="@{/css/fonts/Montserrat.css}">
+    <link rel="stylesheet" href="/assets/@preline/select/variants.css">
+    <link rel="icon" th:href="@{/img/favicon.ico}" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="/js/toastify-js/src/toastify.js"></script>
+    <script src="/js/jquery/dist/jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body class="min-h-screen flex flex-col overflow">
+<div th:replace="~{fragments/navbar}"></div>
+
+<main class="flex flex-grow">
+
+    <div th:if="${editors.isEmpty()}" class="flex flex-grow justify-center items-center">
+        <div class="flex items-center" th:insert="~{fragments/nothing-here :: nothing-here('Could not find any editors.', 'Try to add person who can write notes', '', '')}"></div>
+    </div>
+
+    <div th:if="${!editors.isEmpty()}" class="mx-auto w-[85%]">
+        <div class="relative overflow-x-auto shadow-md rounded-lg mb-[3rem]">
+            <form th:action="@{/change/access}" method="post">
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+                       id="default-table">
+                    <thead class="bg-gray-700 text-xs uppercase text-white">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">
+                            User login
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            User name
+                        </th>
+                        <th scope="col" class="flex justify-end px-6 py-3">
+                            Can edit
+                        </th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    <tr th:each="editor, iter : ${editors}"
+                        th:class="${iter.last} ?
+                'even:bg-gray-800 odd:bg-gray-900' :
+                'border-b even:bg-gray-800 odd:bg-gray-900 border-gray-700' ">
+
+                        <th scope="row" class="px-6 py-4 font-normal text-white">
+                            <span class="text-white font-medium text-md"
+                                  th:text="${editor.login}"></span>
+                        </th>
+
+                        <td class="px-6 py-4 font-normal text-white">
+                        <span class="text-white font-medium text-md"
+                              th:text="${editor.name}"></span>
+                        </td>
+
+                        <td class="py-4 text-right">
+                            <div class="flex justify-end px-6">
+                                <input th:id="${editor.id}" type="checkbox" th:checked="${#lists.contains(note.editors, editor)}" th:name="${note.id}"
+                                       class="access-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500">
+                                <label th:for="${editor.id}" class="sr-only">checkbox</label>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer}"></div>
+<script src="/assets/flowbite.min.js"></script>
+<script src="/js/clear-errors.js"></script>
+<script>
+    document.querySelectorAll('.access-checkbox').forEach(function (input) {
+        input.addEventListener('click', function (event) {
+            $.ajax({
+                url: "/note/change/editors",
+                type: "POST",
+                data: {
+                    "_csrf": document.getElementsByName('_csrf')[0].value,
+                    "noteId": input.name,
+                    "userId": input.id,
+                    "state": input.checked
+                },
+                error: function () {
+                    event.preventDefault()
+                    input.checked = !input.checked
+                }
+            })
+        })
+    })
+</script>
+</body>
+</html>

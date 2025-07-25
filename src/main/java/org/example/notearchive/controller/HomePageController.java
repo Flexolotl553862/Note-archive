@@ -1,6 +1,8 @@
 package org.example.notearchive.controller;
 
+import org.example.notearchive.domain.User;
 import org.example.notearchive.repository.NoteRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -34,8 +36,14 @@ public class HomePageController {
     }
 
     @GetMapping("/my/notes")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_WRITER')")
     public String myNote(Model model, @AuthenticationPrincipal UserDetails userDetails) {
-        model.addAttribute("notes", noteRepository.findAllByAuthor_Login(userDetails.getUsername()));
+        User user = (User) userDetails;
+        if (user.getRole() == User.Role.ROLE_ADMIN) {
+            model.addAttribute("notes", noteRepository.findAll());
+        } else {
+            model.addAttribute("notes", noteRepository.findAllByAuthor_Login(userDetails.getUsername()));
+        }
         return "my-notes";
     }
 }

@@ -19,7 +19,13 @@
 <div th:replace="~{fragments/navbar}"></div>
 
 <main class="flex flex-grow">
-    <div th:replace="~{fragments/note-table}"></div>
+    <div th:if="${!notes.isEmpty()}" class="flex flex-grow">
+        <div th:replace="~{fragments/note-table}"></div>
+    </div>
+
+    <div th:if="${notes.isEmpty()}" class="flex flex-grow items-center">
+        <div th:replace="~{fragments/nothing-here :: nothing-here('There is nothing here yet', 'Try to add your first note.', 'add note', '/add/note')}"></div>
+    </div>
 
     <div th:replace="~{fragments/delete-modal}"></div>
 </main>

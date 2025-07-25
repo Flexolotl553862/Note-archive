@@ -33,7 +33,6 @@ public class NoteValidator implements Validator {
                     }
                 }
         );
-        String[] words = noteForm.getTitle().split("\\s+");
         if (noteForm.getFile() == null || noteForm.getFile().isEmpty()) {
             errors.rejectValue("file", "note.file.empty", "must not be empty");
         }

@@ -92,7 +92,6 @@ public class FileController {
         }
         try {
             fileStorage.deleteNote(note);
-            noteRepository.delete(note);
         } catch (StorageException e) {
             return setError("Could not delete note.", model);
         }

@@ -41,19 +41,28 @@ public class UserService {
         return user;
     }
 
+    public boolean isNoteEditor(long noteId, Authentication authentication) {
+        if (authentication == null || authentication.getPrincipal() == null) {
+            return false;
+        }
+        User user = (User) authentication.getPrincipal();
+        Note note = noteRepository.findById(noteId).orElse(null);
+        return note != null && (user.getRole().equals(User.Role.ROLE_ADMIN)
+                || (note.getEditors() != null && note.getEditors().contains(user)));
+    }
+
     public boolean isNoteAuthor(long noteId, Authentication authentication) {
         if (authentication == null || authentication.getPrincipal() == null) {
             return false;
         }
         User user = (User) authentication.getPrincipal();
         Note note = noteRepository.findById(noteId).orElse(null);
-        return note != null
-                && (user.getRole().equals(User.Role.ROLE_WRITER) || user.getRole().equals(User.Role.ROLE_ADMIN))
-                && note.getAuthor().equals(user);
+        return note != null && (user.getRole().equals(User.Role.ROLE_WRITER) && note.getAuthor().equals(user))
+                || user.getRole().equals(User.Role.ROLE_ADMIN);
     }
 
     public boolean canChangeEntry(long entryId, Authentication authentication) {
         StorageEntry entry = storageEntryRepository.findById(entryId).orElse(null);
-        return entry != null && isNoteAuthor(entry.getParentNote().getId(), authentication);
+        return entry != null && isNoteEditor(entry.getParentNote().getId(), authentication);
     }
 }

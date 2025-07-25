@@ -1,7 +1,14 @@
 package org.example.notearchive.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -20,14 +27,22 @@ public class Note extends AbstractEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
 
-    @OneToOne(orphanRemoval = true, fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
+    private Set<User> editors;
+
+    @OneToOne(orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "content_id")
     private StorageEntry content;
+
+    @OneToMany(mappedBy = "note", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Link> links;
 
     public Note(String title, Long startSemester, Long endSemester, User author) {
         this.title = title;
         this.startSemester = startSemester;
         this.endSemester = endSemester;
         this.author = author;
+        this.editors = new HashSet<>();
+        this.editors.add(author);
     }
 }

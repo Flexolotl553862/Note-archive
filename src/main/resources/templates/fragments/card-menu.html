@@ -1,4 +1,4 @@
-<div th:fragment="card-menu" class="card-menu flex flex-col flex-grow card-menu">
+<div th:fragment="card-menu" class="card-menu flex flex-col flex-grow">
     <link rel="stylesheet" th:href="@{/css/card.css}">
     <link rel="stylesheet" th:href="@{/css/card-container.css}">
 
@@ -7,7 +7,7 @@
     </div>
 
     <div class="flex flex-grow items-center">
-        <button class="left-btn-wrapper">
+        <button th:if="${!notes.isEmpty()}" class="left-btn-wrapper">
             <div class="hover:bg-gray-600 left-btn">
                 <svg class="w-6 h-6 text-white dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                      width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -32,7 +32,7 @@
             </div>
         </div>
 
-        <button class="right-btn-wrapper">
+        <button th:if="${!notes.isEmpty()}" class="right-btn-wrapper">
             <div class="right-btn hover:bg-gray-600">
                 <svg class="w-6 h-6 text-white dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                      width="24" height="24" fill="none" viewBox="0 0 24 24">
