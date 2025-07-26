@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Getter
@@ -44,5 +45,10 @@ public class Note extends AbstractEntity {
         this.author = author;
         this.editors = new HashSet<>();
         this.editors.add(author);
+    }
+
+    public boolean canEdit(User user) {
+        return editors.stream().anyMatch(u -> Objects.equals(u.getId(), user.getId()))
+                || user.getRole().equals(User.Role.ROLE_ADMIN);
     }
 }

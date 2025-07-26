@@ -1,4 +1,4 @@
-<div th:fragment="file-table(folder)" id="file-table">
+<div th:fragment="file-table(folder)" id="file-table" xmlns:sec="http://www.w3.org/1999/xhtml">
     <style>
         @media (max-width: 640px) {
             .desktop-only {
@@ -42,7 +42,8 @@
                 </th>
                 <td class="px-6 py-4 desktop-only"></td>
                 <td class="py-4 text-right inline-flex justify-end w-full">
-                    <button th:if="${#lists.contains(note.editors, user)}" id="new-file">
+                    <button th:if="${note.canEdit(#authentication.principal)}" id="new-file" class="modal-show" data-modal="file-modal"
+                            data-href="/file/create" th:attr="data-fileparentid=${folder.id}">
                         <svg class="hover:text-blue-600 mr-3 w-5 h-5 text-white" aria-hidden="true"
                              xmlns="http://www.w3.org/2000/svg" width="20"
                              height="20" fill="none" viewBox="0 0 24 24">
@@ -51,7 +52,9 @@
                         </svg>
                     </button>
 
-                    <button th:if="${#lists.contains(note.editors, user)}" id="new-directory">
+                    <button th:if="${note.canEdit(#authentication.principal)}" class="modal-show" id="new-directory" data-modal="directory-modal"
+                            th:attr="data-parentid=${folder.id}"
+                            data-href="/folder/create">
                         <svg class="hover:text-blue-600 mr-3 w-5 h-5 text-white" aria-hidden="true"
                              xmlns="http://www.w3.org/2000/svg" width="24"
                              height="24" fill="none" viewBox="0 0 24 24">
@@ -88,7 +91,8 @@
                 </th>
 
                 <!-- last modification time -->
-                <td th:text="${#dates.format(entry.lastModified, 'yyyy-dd-MM HH:mm')}" class="px-6 py-4 text text-gray-400 desktop-only"></td>
+                <td th:text="${#dates.format(entry.lastModified, 'dd-MM-yyyy HH:mm')}"
+                    class="px-6 py-4 text text-gray-400 desktop-only"></td>
 
                 <!-- download and delete buttons -->
                 <td class="py-4 text-right">
@@ -103,8 +107,11 @@
                             </svg>
                         </a>
 
-                        <button th:if="${#lists.contains(note.editors, user)}" th:id="${entry.id}"
-                                th:name="${entry.name}" class="delete-button">
+                        <button th:if="${note.canEdit(#authentication.principal)}" th:id="${entry.id}"
+                                th:name="${entry.name}" class="modal-show" data-modal="delete-modal"
+                                th:attr="data-message=${'Are you sure you want to delete ' + entry.name + '?'},
+                                data-entryid=${entry.id}, data-entryname=${entry.name}"
+                                data-href="/delete/entry">
                             <svg class="w-5 h-5 text-white mr-3 hover:text-blue-600" aria-hidden="true"
                                  xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
                                  viewBox="0 0 24 24">

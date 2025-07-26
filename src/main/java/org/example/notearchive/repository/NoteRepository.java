@@ -12,5 +12,5 @@ public interface NoteRepository extends CrudRepository<Note, Long> {
 
     boolean existsNoteByTitle(String title);
 
-    List<Note> findAllByAuthor_Login(String login);
+    List<Note> findByEditors_Id(Long editors_id);
 }

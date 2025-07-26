@@ -29,6 +29,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @Controller
 public class FileController {
@@ -71,43 +72,79 @@ public class FileController {
     }
 
     @PostMapping("/delete/entry")
-    @PreAuthorize("@userService.canChangeEntry(#id, authentication)")
-    public String deleteEntry(@RequestParam("id") long id, @RequestParam("name") String name, Model model) {
+    @PreAuthorize("@userService.canChangeEntry(#entryId, authentication)")
+    public ResponseEntity<Map<String, Object>> deleteEntry(
+            @RequestParam("entryId") long entryId,
+            @RequestParam("entryName") String entryName
+    ) {
         try {
-            fileStorage.deleteEntry(storageEntryRepository.findById(id).orElseThrow(
+            fileStorage.deleteEntry(storageEntryRepository.findById(entryId).orElseThrow(
                     () -> new StorageException("Could not find entry", null)
             ));
         } catch (StorageException e) {
-            return setError("Could not delete " + name, model);
+            return ResponseEntity.ok(
+                    Map.of(
+                            "ok", false,
+                            "title", "Error!",
+                            "text", "Could not delete " + entryName
+                    )
+            );
         }
-        return setOk("Successfully deleted.", name + " has been deleted.", model);
+        return ResponseEntity.ok(
+                Map.of(
+                        "ok", true,
+                        "title", "Successfully deleted.",
+                        "text", entryName + " has been deleted."
+                )
+        );
     }
 
     @PostMapping("/delete/note")
-    @PreAuthorize("@userService.isNoteAuthor(#id, authentication)")
-    public String deleteNote(@RequestParam("id") long id, Model model) {
-        Note note = noteRepository.findById(id).orElse(null);
+    @PreAuthorize("@userService.isNoteAuthor(#noteId, authentication)")
+    public ResponseEntity<Map<String, Object>> deleteNote(@RequestParam("noteId") long noteId) {
+        Note note = noteRepository.findById(noteId).orElse(null);
         if (note == null) {
-            return setError("Could not find note.", model);
+            return ResponseEntity.ok(
+                    Map.of(
+                            "ok", false,
+                            "title", "Error!",
+                            "text", "Could not find note."
+                    ));
         }
         try {
             fileStorage.deleteNote(note);
         } catch (StorageException e) {
-            return setError("Could not delete note.", model);
+            return ResponseEntity.ok(
+                    Map.of(
+                            "ok", false,
+                            "title", "Error!",
+                            "text", "Could not delete note."
+                    ));
         }
-        return setOk("Successfully deleted.", note.getTitle() + " has been deleted.", model);
+        return ResponseEntity.ok(
+                Map.of(
+                        "ok", true,
+                        "title", "Successfully deleted.",
+                        "text", note.getTitle() + " has been deleted."
+                ));
     }
 
     @PostMapping("/folder/create")
     @PreAuthorize("@userService.canChangeEntry(#createDirectoryForm.parentId, authentication)")
-    public String createDirectory(
+    public ResponseEntity<Map<String, Object>> createDirectory(
             @Valid @ModelAttribute CreateDirectoryForm createDirectoryForm,
-            BindingResult bindingResult,
-            Model model) {
+            BindingResult bindingResult
+    ) {
 
         createDirectoryValidator.validate(createDirectoryForm, bindingResult);
         if (bindingResult.hasErrors()) {
-            return setError(bindingResult.getFieldError().getDefaultMessage(), model);
+            return ResponseEntity.ok(
+                    Map.of(
+                            "ok", false,
+                            "title", "Error!",
+                            "text", bindingResult.getFieldError().getDefaultMessage()
+                    )
+            );
         }
         try {
             fileStorage.createDirectory(
@@ -117,48 +154,54 @@ public class FileController {
                     )
             );
         } catch (StorageException ignored) {
-            return setError("Could not create " + createDirectoryForm.getDirectoryName() + ".", model);
+            return ResponseEntity.ok(
+                    Map.of(
+                            "ok", false,
+                            "title", "Error!",
+                            "text", "Could not create " + createDirectoryForm.getDirectoryName() + "."
+                    )
+            );
         }
-        return setOk(
-                "Successfully created.",
-                createDirectoryForm.getDirectoryName() + " has been created.",
-                model
+        return ResponseEntity.ok(
+                Map.of(
+                        "ok", true,
+                        "title", "Successfully created.",
+                        "text", createDirectoryForm.getDirectoryName() + " has been created."
+                )
         );
     }
 
     @PostMapping("/file/create")
     @PreAuthorize("@userService.canChangeEntry(#fileForm.fileParentId, authentication)")
-    public String createFile(
+    public ResponseEntity<Map<String, Object>> createFile(
             @Valid @ModelAttribute FileForm fileForm,
-            BindingResult bindingResult,
-            Model model
+            BindingResult bindingResult
     ) {
         createFileValidator.validate(fileForm, bindingResult);
         if (bindingResult.hasErrors()) {
-            return setError(bindingResult.getFieldError().getDefaultMessage(), model);
+            ResponseEntity.ok(
+                    Map.of(
+                            "ok", false,
+                            "title", "Error!",
+                            "text", bindingResult.getFieldError().getDefaultMessage()
+                    ));
         }
         try {
             storageService.uploadMultipartFile(fileForm.getFileCreate(), fileForm.getFileParentId());
         } catch (StorageException ignored) {
-            return setError("Could not create " + fileForm.getFileCreate().getOriginalFilename() + ".", model);
+            return ResponseEntity.ok(
+                    Map.of(
+                            "ok", false,
+                            "title", "Error!",
+                            "text", "Could not create " + fileForm.getFileCreate().getOriginalFilename() + "."
+                    ));
         }
-        return setOk(
-                "Successfully added.",
-                fileForm.getFileCreate().getOriginalFilename() + " has been added.",
-                model
-        );
-    }
-
-    private String setOk(String title, String message, Model model) {
-        model.addAttribute("title", title);
-        model.addAttribute("message", message);
-        return "/fragments/success-notification";
-    }
-
-    private String setError(String message, Model model) {
-        model.addAttribute("title", "Error!");
-        model.addAttribute("message", message);
-        return "/fragments/error-notification";
+        return ResponseEntity.ok(
+                Map.of(
+                        "ok", true,
+                        "title", "Successfully added.",
+                        "text", fileForm.getFileCreate().getOriginalFilename() + " has been added."
+                ));
     }
 
     private ResponseEntity<Resource> getFileForResponse(long id, String action, RedirectAttributes redirectAttributes) {

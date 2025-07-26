@@ -42,7 +42,7 @@ public class HomePageController {
         if (user.getRole() == User.Role.ROLE_ADMIN) {
             model.addAttribute("notes", noteRepository.findAll());
         } else {
-            model.addAttribute("notes", noteRepository.findAllByAuthor_Login(userDetails.getUsername()));
+            model.addAttribute("notes", noteRepository.findByEditors_Id(((User) userDetails).getId()));
         }
         return "my-notes";
     }

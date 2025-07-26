@@ -4,6 +4,7 @@ import org.example.notearchive.domain.Note;
 import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.domain.User;
 import org.example.notearchive.dto.RegisterForm;
+import org.example.notearchive.repository.LinkRepository;
 import org.example.notearchive.repository.NoteRepository;
 import org.example.notearchive.repository.StorageEntryRepository;
 import org.example.notearchive.repository.UserRepository;
@@ -17,17 +18,19 @@ public class UserService {
     private final NoteRepository noteRepository;
     private final StorageEntryRepository storageEntryRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LinkRepository linkRepository;
 
     public UserService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             NoteRepository noteRepository,
-            StorageEntryRepository repository
-    ) {
+            StorageEntryRepository repository,
+            LinkRepository linkRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.noteRepository = noteRepository;
         this.storageEntryRepository = repository;
+        this.linkRepository = linkRepository;
     }
 
     public User Register(RegisterForm registerForm) {
@@ -49,6 +52,12 @@ public class UserService {
         Note note = noteRepository.findById(noteId).orElse(null);
         return note != null && (user.getRole().equals(User.Role.ROLE_ADMIN)
                 || (note.getEditors() != null && note.getEditors().contains(user)));
+    }
+
+    public boolean isLinkAuthor(long linkId, Authentication authentication) {
+        return linkRepository.findById(linkId).orElseThrow().getAuthor().getId().equals(
+                ((User) authentication.getPrincipal()).getId()
+        );
     }
 
     public boolean isNoteAuthor(long noteId, Authentication authentication) {

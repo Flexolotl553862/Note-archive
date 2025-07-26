@@ -1,27 +1,49 @@
 $(function () {
-    const folderId = localStorage.getItem("folderId");
+    const getSuccessElement = function (message) {
+        return '<div class="flex success">\n' +
+            '    <div class="shrink-0">\n' +
+            '        <span class="inline-flex justify-center items-center size-8 rounded-full border-4 border-teal-100 bg-teal-200 text-teal-800 dark:border-teal-900 dark:bg-teal-800 dark:text-teal-400">\n' +
+            '          <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"\n' +
+            '               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n' +
+            '            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>\n' +
+            '            <path d="m9 12 2 2 4-4"></path>\n' +
+            '          </svg>\n' +
+            '        </span>\n' +
+            '    </div>\n' +
+            '    <div class="ms-3">\n' +
+            '        <h3 id="hs-bordered-success-style-label" class="text-gray-800 font-semibold dark:text-white"\n' +
+            '            >' + message.title + '</h3>\n' +
+            '        <p class="text-sm text-gray-700 dark:text-neutral-400">' + message.text + '</p>\n' +
+            '    </div>\n' +
+            '</div>'
+    }
 
-    const buttons = document.querySelectorAll('.delete-button');
-    const deleteButton = document.getElementById('sure-to-delete');
-    const deleteModal = new Modal(document.getElementById('delete-modal'));
-
-    const directoryForm = document.getElementById('directory-form')
-    const directoryModal = new Modal(document.getElementById('directory-modal'));
-    const newDirectory = document.getElementById('new-directory');
-
-    const newFile = document.getElementById('new-file');
-    const fileModal = new Modal(document.getElementById('file-modal'));
-    const fileForm = document.getElementById('file-form');
+    const getErrorElement = function (message) {
+        return '<div class="flex error">\n' +
+            '    <div class="shrink-0">\n' +
+            '        <span class="inline-flex justify-center items-center size-8 rounded-full border-4 border-red-100 bg-red-200 text-red-800 dark:border-red-900 dark:bg-red-800 dark:text-red-400">\n' +
+            '          <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"\n' +
+            '               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n' +
+            '            <path d="M18 6 6 18"></path>\n' +
+            '            <path d="m6 6 12 12"></path>\n' +
+            '          </svg>\n' +
+            '        </span>\n' +
+            '    </div>\n' +
+            '    <div class="ms-3">\n' +
+            '        <h3 id="hs-bordered-red-style-label" class="text-gray-800 font-semibold dark:text-white">' + message.title + '</h3>\n' +
+            '        <p class="text-sm text-gray-700 dark:text-neutral-400">' + message.text + '</p>\n' +
+            '    </div>\n' +
+            '</div>';
+    }
 
     const notify = function () {
-        const message = localStorage.getItem('message');
-        if (message) {
+        if (localStorage.getItem('message') && localStorage.getItem('message') !== '') {
+            const message = JSON.parse(localStorage.getItem('message'));
             localStorage.removeItem('message');
-            const response = document.createRange().createContextualFragment(message);
-            const ok = response.querySelectorAll('.success').length > 0;
-
+            const ok = message.ok;
+            const notification = ok ? getSuccessElement(message) : getErrorElement(message);
             Toastify({
-                text: message,
+                text: notification,
                 duration: 2000,
                 position: "center",
                 gravity: "bottom",
@@ -37,104 +59,63 @@ $(function () {
 
     notify();
 
-    // delete entry section
+    const modals = new Map();
+    const modalData = new Map();
 
-    document.querySelectorAll('.modal-delete-hide').forEach((button) => {
+    document.querySelectorAll('.modal').forEach((modal) => {
+        modals.set(modal.id, new Modal(modal));
+    })
+
+    document.querySelectorAll('.modal-hide').forEach((button) => {
         button.addEventListener('click', function () {
-            deleteModal.hide();
+            modals.get(button.dataset.modal).hide();
         })
     })
 
-    buttons.forEach(button => {
+    document.querySelectorAll('.modal-show').forEach((button) => {
         button.addEventListener('click', function () {
-            console.log("ok")
-            deleteModal.show();
-            document.getElementById('delete-msg').textContent = 'Are you sure you want to delete ' + button.name + '?'
-            localStorage.setItem('delete', button.id);
+            if (document.getElementById(button.dataset.modal + '-msg')) {
+                document.getElementById(button.dataset.modal + '-msg').textContent = button.dataset.message;
+            }
+            modalData.set(button.dataset.modal, button.dataset);
+            modals.get(button.dataset.modal).show();
         })
     })
 
-    deleteButton.addEventListener('submit', function (event) {
-        event.preventDefault();
-        const id = localStorage.getItem("delete");
-        const name = document.getElementById(id).name;
-
-        if (id !== '') {
+    document.querySelectorAll('.modal-form').forEach((form) => {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            data = new FormData(form);
+            let url = modalData.get(form.dataset.modal).href;
+            if (url === '' || url === undefined) {
+                url = form.getAttribute('action')
+            }
+            for (let [name, value] of data.entries()) {
+                if (value === '' && modalData.has(form.dataset.modal)) {
+                    data.set(name, modalData.get(form.dataset.modal)[name.toLowerCase()]);
+                }
+            }
             $.ajax({
-                url: '/delete/entry',
+                url: url,
                 type: "POST",
-                data: {
-                    "_csrf": document.getElementsByName('_csrf')[0].value,
-                    "id": id,
-                    "name": name
-                },
+                data: data,
+                processData: false,
+                contentType: false,
                 success: function (data) {
-                    deleteModal.hide();
+                    modals.get(form.dataset.modal).hide();
+                    localStorage.setItem("message", JSON.stringify(data));
                     window.location.reload();
-                    localStorage.setItem("message", data);
+                },
+                error: function () {
+                    modals.get(form.dataset.modal).hide();
+                    localStorage.setItem("message", JSON.stringify({
+                        ok: false,
+                        title: "Error!",
+                        text: "Something went wrong."
+                    }));
+                    // window.location.reload();
                 }
             })
-        }
-    })
-
-    // create a directory section
-
-    newDirectory.addEventListener('click', function () {
-        directoryModal.show();
-    })
-
-    document.querySelectorAll('.modal-directory-hide').forEach((button) => {
-        button.addEventListener('click', function () {
-            directoryModal.hide();
-        })
-    })
-
-    directoryForm.addEventListener('submit', function (event) {
-        event.preventDefault()
-        document.getElementById('parentId').value = folderId;
-        const data = new FormData(directoryForm);
-        $.ajax({
-            url: "/folder/create",
-            type: "POST",
-            data: data,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                directoryModal.hide();
-                localStorage.setItem("message", response);
-                window.location.reload();
-            }
-        })
-    })
-
-    // create a file section
-
-    newFile.addEventListener('click', function () {
-        fileModal.show();
-    })
-
-    document.querySelectorAll('.modal-file-hide').forEach((button) => {
-        button.addEventListener('click', function () {
-            fileModal.hide();
-        })
-    })
-
-    fileForm.addEventListener('submit', function (event) {
-        event.preventDefault()
-        document.getElementById('fileParentId').value = folderId;
-        const data = new FormData(fileForm);
-
-        $.ajax({
-            url: "/file/create",
-            type: "POST",
-            data: data,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                fileModal.hide();
-                localStorage.setItem("message", response);
-                window.location.reload();
-            }
         })
     })
 })

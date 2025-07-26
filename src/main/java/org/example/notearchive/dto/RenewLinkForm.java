@@ -2,7 +2,6 @@ package org.example.notearchive.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,7 +12,7 @@ import java.util.Date;
 @Getter
 @Setter
 @NoArgsConstructor
-public class LinkForm {
+public class RenewLinkForm {
     @NotBlank
     private String expiryTime;
 
@@ -21,11 +20,7 @@ public class LinkForm {
     private String expiryDate;
 
     @NotNull
-    private Long noteId;
-
-    @NotBlank
-    @Size(min = 2, max = 100)
-    private String description;
+    private Long linkId;
 
     public Date getDate() throws DateTimeException {
         LocalDate date = LocalDate.parse(expiryDate);
@@ -33,3 +28,4 @@ public class LinkForm {
         return Date.from(time.atZone(ZoneId.systemDefault()).toInstant());
     }
 }
+
