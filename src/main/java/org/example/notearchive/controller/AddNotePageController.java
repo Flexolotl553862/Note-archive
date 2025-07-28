@@ -51,7 +51,7 @@ public class AddNotePageController {
             BindingResult bindingResult,
             SessionStatus sessionStatus,
             @AuthenticationPrincipal UserDetails userDetails
-            ) {
+    ) {
         if (bindingResult.hasErrors()) {
             return "add-note";
         }

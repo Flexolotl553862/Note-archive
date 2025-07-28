@@ -1,4 +1,4 @@
-<div th:fragment="file-table(folder)" id="file-table" xmlns:sec="http://www.w3.org/1999/xhtml">
+<div th:fragment="file-table(folder)" id="file-table" th:with="canEdit=${note.canEdit(#authentication)}">
     <style>
         @media (max-width: 640px) {
             .desktop-only {
@@ -25,12 +25,12 @@
             <tbody>
 
             <!-- parent folder -->
-            <tr th:with="parent=${folder.parent == null} ? '/home' : ${'/folder/' +  folder.parent.id}"
+            <tr th:with="parent=${folder.parent == null} ? ${'/note/' + folder.parentNote.id + '/description'} : ${'/folder/' +  folder.parent.id}"
                 class="border-b bg-gray-900 border-gray-700"
                 th:class="${folder.children == null || folder.children.isEmpty} ? 'bg-gray-900' : 'border-b bg-gray-900 border-gray-700' ">
 
                 <th scope="row" class="px-6 py-4 font-normal text-gray-900 dark:text-white">
-                    <a th:href="${parent}" class="flex items-center space-x-2">
+                    <a th:href="${(prefix != null ? prefix : '') + parent}" class="flex items-center space-x-2">
                         <div class="flex items-center space-x-2">
                             <svg aria-hidden="true" focusable="false" class="text-blue-400" width="16" height="16"
                                  fill="currentColor" viewBox="0 0 16 16">
@@ -42,7 +42,7 @@
                 </th>
                 <td class="px-6 py-4 desktop-only"></td>
                 <td class="py-4 text-right inline-flex justify-end w-full">
-                    <button th:if="${note.canEdit(#authentication.principal)}" id="new-file" class="modal-show" data-modal="file-modal"
+                    <button th:if="${canEdit}" id="new-file" class="modal-show" data-modal="file-modal"
                             data-href="/file/create" th:attr="data-fileparentid=${folder.id}">
                         <svg class="hover:text-blue-600 mr-3 w-5 h-5 text-white" aria-hidden="true"
                              xmlns="http://www.w3.org/2000/svg" width="20"
@@ -52,7 +52,7 @@
                         </svg>
                     </button>
 
-                    <button th:if="${note.canEdit(#authentication.principal)}" class="modal-show" id="new-directory" data-modal="directory-modal"
+                    <button th:if="${canEdit}" class="modal-show" id="new-directory" data-modal="directory-modal"
                             th:attr="data-parentid=${folder.id}"
                             data-href="/folder/create">
                         <svg class="hover:text-blue-600 mr-3 w-5 h-5 text-white" aria-hidden="true"
@@ -73,7 +73,7 @@
 
                 <!-- file or directory -->
                 <th scope="row" class="px-6 py-4 font-normal text-white">
-                    <a th:href="${entry.isDirectory} ? ${'/folder/' + entry.id} : ${'/file/' + entry.id}"
+                    <a th:href="${entry.isDirectory} ? ${(prefix != null ? prefix : '') + '/folder/' + entry.id} : ${(prefix != null ? prefix : '') + '/file/' + entry.id}"
                        class="flex items-center space-x-2">
                         <svg th:if="${entry.isDirectory}" aria-hidden="true" focusable="false" class="text-blue-400"
                              width="16" height="16"
@@ -97,7 +97,7 @@
                 <!-- download and delete buttons -->
                 <td class="py-4 text-right">
                     <div class="flex justify-end">
-                        <a th:href="${'/download/file/' + entry.id}" th:if="${!entry.isDirectory}">
+                        <a th:href="${(prefix != null ? prefix : '') + '/download/file/' + entry.id}" th:if="${!entry.isDirectory}">
                             <svg class="w-5 h-5 text-white mr-3 hover:text-blue-600" aria-hidden="true"
                                  xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
                                  viewBox="0 0 24 24">
@@ -107,7 +107,7 @@
                             </svg>
                         </a>
 
-                        <button th:if="${note.canEdit(#authentication.principal)}" th:id="${entry.id}"
+                        <button th:if="${canEdit}" th:id="${entry.id}"
                                 th:name="${entry.name}" class="modal-show" data-modal="delete-modal"
                                 th:attr="data-message=${'Are you sure you want to delete ' + entry.name + '?'},
                                 data-entryid=${entry.id}, data-entryname=${entry.name}"

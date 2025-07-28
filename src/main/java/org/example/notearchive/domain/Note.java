@@ -5,7 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 
+import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -47,8 +50,12 @@ public class Note extends AbstractEntity {
         this.editors.add(author);
     }
 
-    public boolean canEdit(User user) {
-        return editors.stream().anyMatch(u -> Objects.equals(u.getId(), user.getId()))
-                || user.getRole().equals(User.Role.ROLE_ADMIN);
+    public boolean canEdit(Authentication authentication) {
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            return false;
+        }
+        User user = (User) authentication.getPrincipal();
+        return editors.stream().anyMatch(u -> Objects.equals(u.getId(), user.getId())
+                || user.getRole().equals(User.Role.ROLE_ADMIN));
     }
 }

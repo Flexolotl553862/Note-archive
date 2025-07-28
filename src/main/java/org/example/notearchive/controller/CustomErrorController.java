@@ -29,4 +29,10 @@ public class CustomErrorController implements ErrorController {
         }
         return "not-found";
     }
+
+    @RequestMapping("/not/found")
+    public String notFound(Model model) {
+        model.addAttribute("message", "404 Not found");
+        return "not-found";
+    }
 }

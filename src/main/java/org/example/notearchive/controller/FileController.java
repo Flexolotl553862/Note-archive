@@ -7,8 +7,7 @@ import org.example.notearchive.dto.CreateDirectoryForm;
 import org.example.notearchive.dto.FileForm;
 import org.example.notearchive.exception.StorageException;
 import org.example.notearchive.filestorage.FileStorage;
-import org.example.notearchive.repository.NoteRepository;
-import org.example.notearchive.repository.StorageEntryRepository;
+import org.example.notearchive.service.EntityHelper;
 import org.example.notearchive.service.StorageService;
 import org.example.notearchive.validator.CreateDirectoryValidator;
 import org.example.notearchive.validator.CreateFileValidator;
@@ -37,19 +36,22 @@ public class FileController {
     private final CreateDirectoryValidator createDirectoryValidator;
     private final CreateFileValidator createFileValidator;
     private final FileStorage fileStorage;
-    private final StorageEntryRepository storageEntryRepository;
-    private final NoteRepository noteRepository;
+    private final EntityHelper entityHelper;
+    private final ResponseHelper responseHelper;
 
     public FileController(
             StorageService storageService,
             CreateDirectoryValidator createDirectoryValidator,
-            CreateFileValidator createFileValidator, FileStorage fileStorage, StorageEntryRepository storageEntryRepository, NoteRepository noteRepository) {
+            CreateFileValidator createFileValidator,
+            FileStorage fileStorage,
+            EntityHelper entityHelper,
+            ResponseHelper responseHelper) {
         this.storageService = storageService;
         this.createDirectoryValidator = createDirectoryValidator;
         this.createFileValidator = createFileValidator;
         this.fileStorage = fileStorage;
-        this.storageEntryRepository = storageEntryRepository;
-        this.noteRepository = noteRepository;
+        this.entityHelper = entityHelper;
+        this.responseHelper = responseHelper;
     }
 
     @ModelAttribute
@@ -78,55 +80,23 @@ public class FileController {
             @RequestParam("entryName") String entryName
     ) {
         try {
-            fileStorage.deleteEntry(storageEntryRepository.findById(entryId).orElseThrow(
-                    () -> new StorageException("Could not find entry", null)
-            ));
+            fileStorage.deleteEntry(entityHelper.getEntry(entryId));
         } catch (StorageException e) {
-            return ResponseEntity.ok(
-                    Map.of(
-                            "ok", false,
-                            "title", "Error!",
-                            "text", "Could not delete " + entryName
-                    )
-            );
+            return responseHelper.error("Could not delete " + entryName);
         }
-        return ResponseEntity.ok(
-                Map.of(
-                        "ok", true,
-                        "title", "Successfully deleted.",
-                        "text", entryName + " has been deleted."
-                )
-        );
+        return responseHelper.ok("Successfully deleted.", entryName + " has been deleted.");
     }
 
     @PostMapping("/delete/note")
     @PreAuthorize("@userService.isNoteAuthor(#noteId, authentication)")
     public ResponseEntity<Map<String, Object>> deleteNote(@RequestParam("noteId") long noteId) {
-        Note note = noteRepository.findById(noteId).orElse(null);
-        if (note == null) {
-            return ResponseEntity.ok(
-                    Map.of(
-                            "ok", false,
-                            "title", "Error!",
-                            "text", "Could not find note."
-                    ));
-        }
+        Note note = entityHelper.getNote(noteId);
         try {
             fileStorage.deleteNote(note);
-        } catch (StorageException e) {
-            return ResponseEntity.ok(
-                    Map.of(
-                            "ok", false,
-                            "title", "Error!",
-                            "text", "Could not delete note."
-                    ));
+        } catch (StorageException ignored) {
+            return responseHelper.error("Could not delete note.");
         }
-        return ResponseEntity.ok(
-                Map.of(
-                        "ok", true,
-                        "title", "Successfully deleted.",
-                        "text", note.getTitle() + " has been deleted."
-                ));
+        return responseHelper.ok("Successfully deleted.", note.getTitle() + " has been deleted.");
     }
 
     @PostMapping("/folder/create")
@@ -135,40 +105,19 @@ public class FileController {
             @Valid @ModelAttribute CreateDirectoryForm createDirectoryForm,
             BindingResult bindingResult
     ) {
-
         createDirectoryValidator.validate(createDirectoryForm, bindingResult);
         if (bindingResult.hasErrors()) {
-            return ResponseEntity.ok(
-                    Map.of(
-                            "ok", false,
-                            "title", "Error!",
-                            "text", bindingResult.getFieldError().getDefaultMessage()
-                    )
-            );
+            return responseHelper.error(bindingResult.getFieldError().getDefaultMessage());
         }
         try {
             fileStorage.createDirectory(
                     createDirectoryForm.getDirectoryName(),
-                    storageEntryRepository.findById(createDirectoryForm.getParentId()).orElseThrow(
-                            () -> new StorageException("Could not find parent entry", null)
-                    )
+                    entityHelper.getEntry(createDirectoryForm.getParentId())
             );
         } catch (StorageException ignored) {
-            return ResponseEntity.ok(
-                    Map.of(
-                            "ok", false,
-                            "title", "Error!",
-                            "text", "Could not create " + createDirectoryForm.getDirectoryName() + "."
-                    )
-            );
+            return responseHelper.error("Could not create " + createDirectoryForm.getDirectoryName() + ".");
         }
-        return ResponseEntity.ok(
-                Map.of(
-                        "ok", true,
-                        "title", "Successfully created.",
-                        "text", createDirectoryForm.getDirectoryName() + " has been created."
-                )
-        );
+        return responseHelper.ok("Successfully created.",createDirectoryForm.getDirectoryName() + " has been created.");
     }
 
     @PostMapping("/file/create")
@@ -179,50 +128,30 @@ public class FileController {
     ) {
         createFileValidator.validate(fileForm, bindingResult);
         if (bindingResult.hasErrors()) {
-            ResponseEntity.ok(
-                    Map.of(
-                            "ok", false,
-                            "title", "Error!",
-                            "text", bindingResult.getFieldError().getDefaultMessage()
-                    ));
+            return responseHelper.error(bindingResult.getFieldError().getDefaultMessage());
         }
         try {
             storageService.uploadMultipartFile(fileForm.getFileCreate(), fileForm.getFileParentId());
         } catch (StorageException ignored) {
-            return ResponseEntity.ok(
-                    Map.of(
-                            "ok", false,
-                            "title", "Error!",
-                            "text", "Could not create " + fileForm.getFileCreate().getOriginalFilename() + "."
-                    ));
+            return responseHelper.error("Could not create " + fileForm.getFileCreate().getOriginalFilename() + ".");
         }
-        return ResponseEntity.ok(
-                Map.of(
-                        "ok", true,
-                        "title", "Successfully added.",
-                        "text", fileForm.getFileCreate().getOriginalFilename() + " has been added."
-                ));
+        return responseHelper.ok("Successfully added.", fileForm.getFileCreate().getOriginalFilename() + " has been added.");
     }
 
-    private ResponseEntity<Resource> getFileForResponse(long id, String action, RedirectAttributes redirectAttributes) {
+    private ResponseEntity<Resource> getFileForResponse(long id, String dispositionType, RedirectAttributes redirectAttributes) {
         Tika tika = new Tika();
         try {
-            File file = fileStorage.getEntryContent(storageEntryRepository.findById(id).orElseThrow(
-                    () -> new StorageException("Could not find entry", null)
-            ));
-
+            File file = fileStorage.getEntryContent(entityHelper.getEntry(id));
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(tika.detect(file)));
             headers.setContentDisposition(ContentDisposition
-                    .builder(action)
+                    .builder(dispositionType)
                     .filename(file.getName(), StandardCharsets.UTF_8)
                     .build()
             );
-
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(new FileSystemResource(file));
-
         } catch (StorageException e) {
             redirectAttributes.addFlashAttribute("message", e.getMessage());
         } catch (IOException e) {

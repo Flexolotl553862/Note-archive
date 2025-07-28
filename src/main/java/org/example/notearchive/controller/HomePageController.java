@@ -29,7 +29,7 @@ public class HomePageController {
         }
     }
 
-    @GetMapping("/home")
+    @GetMapping(value = {"/home", "/"})
     public String home(Model model) {
         model.addAttribute("notes", noteRepository.findAll());
         return "home";

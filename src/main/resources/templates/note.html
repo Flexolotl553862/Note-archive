@@ -22,7 +22,9 @@
 
         <div th:replace="~{fragments/file-table :: file-table(${folder})}"></div>
 
-        <div th:replace="~{fragments/modals}"></div>
+        <div th:if="${note.canEdit(#authentication)}">
+            <div th:replace="~{fragments/modals}"></div>
+        </div>
     </div>
 </main>
 <div th:replace="~{fragments/footer}"></div>

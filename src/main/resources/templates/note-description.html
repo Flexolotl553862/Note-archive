@@ -31,7 +31,7 @@
         <div class="text-white description" id="description">
             <div id="loader" th:insert="~{fragments/loader}"></div>
 
-            <div th:if="${note.author.id == user.id}">
+            <div th:if="${note.canEdit(#authentication)}">
                 <div th:replace="~{fragments/generate-markdown}"></div>
             </div>
 
@@ -60,7 +60,7 @@
         </div>
         <a type="button"
            class="mt-5 w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-           th:href="${'/note/' + note.id}">
+           th:href="${(prefix != null ? prefix : '') +'/folder/' + note.getContent().getId()}">
             View Resources
         </a>
     </div>
@@ -71,14 +71,14 @@
 <script src="/assets/markdown-it/dist/markdown-it.js"></script>
 <script th:inline="javascript">
     let noteId = /*[[${note.id}]]*/ '';
-    const url = '/api/note/' + noteId + '/description'
+    let prefix = /*[[${prefix}]]*/ '';
+    const url = prefix + '/api/note/' + noteId + '/description'
     const markdown = document.getElementById('markdown-body');
     const loader = document.getElementById('loader');
     const md = window.markdownit();
     const content = document.getElementById('content')
     const form = document.getElementById('gen-form');
     const textarea = document.getElementById('generate-form-' + noteId);
-    const csrf = document.getElementsByName('_csrf')[0].value;
     const collapse = document.getElementById('hs-show-hide-collapse-heading');
     const toggle = document.getElementById('hs-show-hide-collapse');
 
@@ -126,7 +126,7 @@
                     url: url + '/generate',
                     type: "POST",
                     data: {
-                        "_csrf": csrf,
+                        "_csrf": document.getElementsByName('_csrf')[0].value,
                         "data": textarea.value
                     },
                     success: function (data) {

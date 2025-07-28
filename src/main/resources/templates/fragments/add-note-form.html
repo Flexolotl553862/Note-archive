@@ -3,7 +3,7 @@
     <div class="card-info">
         <div class="glass-form py-6 px-4 mx-auto x-full rounded-2xl">
             <h2 class="mb-4 text-xl font-bold text-white">Add a new note</h2>
-            <form method="post" th:action="@{/add/note}" th:object="${noteForm}" enctype="multipart/form-data">
+            <form method="post" th:action="@{/add/note}" th:object="${noteForm}" enctype="multipart/form-data" id="add-note-form">
                 <div class="grid gap-4 grid-cols-2 sm:gap-4">
                     <div class="col-span-2">
                         <div th:replace="~{fragments/form-field :: form-field('title', 'Title', 'text', 'save-input')}"></div>
@@ -47,7 +47,7 @@
                         });
                     </script>
                 </div>
-                <button type="submit" class="inline-flex w-full items-center justify-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-blue-700 rounded-lg dark:focus:ring-primary-900 hover:bg-blue-800">
+                <button type="submit" class="add-note-form-button inline-flex w-full items-center justify-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-blue-700 rounded-lg dark:focus:ring-primary-900 hover:bg-blue-800">
                     Submit
                 </button>
             </form>

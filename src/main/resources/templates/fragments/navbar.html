@@ -50,7 +50,7 @@
                     </ul>
                 </div>
 
-                <button data-collapse-toggle="navbar-user" type="button"
+                <button type="button"
                         class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
                         data-drawer-target="navigation-sidebar" data-drawer-show="navigation-sidebar"
                         aria-controls="navigation-sidebar">
@@ -135,7 +135,7 @@
                             <span class="flex-1 ms-3 whitespace-nowrap">Sign In</span>
                         </a>
                     </li>
-                    <li th:if="${user != null && (user.role.name == 'ROLE_WRITER' || user.role.name == 'ROLE_ADMIN')}">
+                    <li sec:authorize="hasAnyRole('ADMIN', 'WRITER')">
                         <a href="/my/notes"
                            class="flex items-center p-2 text-gray-900 rounded-lg text-white hover:bg-gray-700 group">
                             <svg class="shrink-0 w-6 h-6 transition duration-75 text-gray-400 group-hover:text-white"
@@ -148,7 +148,7 @@
                             <span class="flex-1 ms-3 whitespace-nowrap">My notes</span>
                         </a>
                     </li>
-                    <li th:if="${user != null && (user.role.name == 'ROLE_WRITER' || user.role.name == 'ROLE_ADMIN')}">
+                    <li sec:authorize="hasAnyRole('ADMIN', 'WRITER')">
                         <a href="/add/note"
                            class="flex items-center p-2 text-gray-900 rounded-lg text-white hover:bg-gray-700 group">
                             <svg class="shrink-0 w-6 h-6 transition duration-75 text-gray-400 group-hover:text-white"
@@ -162,9 +162,9 @@
                         </a>
                     </li>
                     <li sec:authorize="isAuthenticated()">
-                        <form th:action="@{/logout}" method="post">
+                        <form th:action="@{/logout}" method="post" class="rounded-lg hover:bg-gray-700">
                             <button type="submit"
-                                    class="flex items-center p-2 text-gray-900 rounded-lg text-white hover:bg-gray-700 group">
+                                    class="flex items-center p-2 text-gray-900 text-white group">
                                 <svg class="shrink-0 w-6 h-6 transition duration-75 text-gray-400 group-hover:text-white"
                                      aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                      fill="none" viewBox="0 0 24 24">

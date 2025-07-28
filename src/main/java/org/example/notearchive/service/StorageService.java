@@ -9,7 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 public class StorageService {
@@ -45,8 +49,22 @@ public class StorageService {
         storageEntryRepository.save(root);
     }
 
-    public void addMarkdownDescription(Note note, String markdownDescription) throws StorageException {
-        fileStorage.saveAsFile(new ByteArrayInputStream(markdownDescription.getBytes()), "description.md", note.getContent());
-        storageEntryRepository.save(note.getContent());
+    public void getPath(StorageEntry entry, List<StorageEntry> path) {
+        path.add(entry);
+        if (entry.getParent() != null) {
+            getPath(entry.getParent(), path);
+        } else {
+            Collections.reverse(path);
+        }
+    }
+
+    public List<StorageEntry> getPath(StorageEntry entry) {
+        List<StorageEntry> path = new ArrayList<>();
+        getPath(entry, path);
+        return path;
+    }
+
+    public File getEntryContent(StorageEntry entry) throws StorageException {
+        return fileStorage.getEntryContent(entry);
     }
 }

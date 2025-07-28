@@ -140,7 +140,7 @@
                     </td>
 
                     <td class="py-4 flex justify-end px-6 gap-2">
-                        <div th:insert="~{fragments/copy :: copy(${link.link}, ${link.id})}" class="flex items-center"></div>
+                        <div th:insert="~{fragments/copy :: copy(${root + '/public/' + link.link + '/note/' + link.note.id}, ${link.id})}" class="flex items-center"></div>
                         <button class="modal-show flex items-center justify-end" data-modal="renew-link-modal"
                                 th:attr="data-linkId=${link.id}">
                             <svg class="w-5 h-5 text-white hover:text-blue-600" aria-hidden="true"

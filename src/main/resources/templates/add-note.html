@@ -14,11 +14,141 @@
 <body class="min-h-screen flex flex-col">
 <div th:replace="~{fragments/navbar}"></div>
 
-<main class="flex-grow">
+<main class="flex-grow main">
     <div th:replace="~{fragments/add-note-form}"></div>
 </main>
 
 <div th:replace="~{fragments/footer}"></div>
 <script src="/assets/flowbite.min.js"></script>
+<script>
+    document.getElementById('add-note-form').addEventListener('submit', function () {
+        document.querySelector('.add-note-form-button').innerHTML =
+            '<style>\n' +
+            '        .loader {\n' +
+            '            display: flex;\n' +
+            '            align-items: center;\n' +
+            '            justify-content: center;\n' +
+            '            flex-direction: column;\n' +
+            '            gap: 5px;\n' +
+            '        }\n' +
+            '\n' +
+            '        .loading-text {\n' +
+            '            color: white;\n' +
+            '            font-size: 14pt;\n' +
+            '            font-weight: 600;\n' +
+            '            margin-left: 10px;\n' +
+            '        }\n' +
+            '\n' +
+            '        .dot {\n' +
+            '            margin-left: 3px;\n' +
+            '            animation: blink 1.5s infinite;\n' +
+            '        }\n' +
+            '        .dot:nth-child(2) {\n' +
+            '            animation-delay: 0.3s;\n' +
+            '        }\n' +
+            '\n' +
+            '        .dot:nth-child(3) {\n' +
+            '            animation-delay: 0.6s;\n' +
+            '        }\n' +
+            '\n' +
+            '        .loading-bar-background {\n' +
+            '            --height: 30px;\n' +
+            '            display: flex;\n' +
+            '            align-items: center;\n' +
+            '            box-sizing: border-box;\n' +
+            '            padding: 5px;\n' +
+            '            width: 200px;\n' +
+            '            height: var(--height);\n' +
+            '            background-color: #212121 /*change this*/;\n' +
+            '            box-shadow: #0c0c0c -2px 2px 4px 0px inset;\n' +
+            '            border-radius: calc(var(--height) / 2);\n' +
+            '        }\n' +
+            '\n' +
+            '        .loading-bar {\n' +
+            '            position: relative;\n' +
+            '            display: flex;\n' +
+            '            justify-content: center;\n' +
+            '            flex-direction: column;\n' +
+            '            --height: 20px;\n' +
+            '            width: 0%;\n' +
+            '            height: var(--height);\n' +
+            '            overflow: hidden;\n' +
+            '            background: rgb(222, 74, 15);\n' +
+            '            background: linear-gradient(\n' +
+            '                    0deg,\n' +
+            '                    rgba(222, 74, 15, 1) 0%,\n' +
+            '                    rgba(249, 199, 79, 1) 100%\n' +
+            '            );\n' +
+            '            border-radius: calc(var(--height) / 2);\n' +
+            '            animation: loading 4s ease-out infinite;\n' +
+            '        }\n' +
+            '\n' +
+            '        .white-bars-container {\n' +
+            '            position: absolute;\n' +
+            '            display: flex;\n' +
+            '            align-items: center;\n' +
+            '            gap: 18px;\n' +
+            '        }\n' +
+            '\n' +
+            '        .white-bar {\n' +
+            '            background: rgb(255, 255, 255);\n' +
+            '            background: linear-gradient(\n' +
+            '                    -45deg,\n' +
+            '                    rgba(255, 255, 255, 1) 0%,\n' +
+            '                    rgba(255, 255, 255, 0) 70%\n' +
+            '            );\n' +
+            '            width: 10px;\n' +
+            '            height: 45px;\n' +
+            '            opacity: 0.3;\n' +
+            '            rotate: 45deg;\n' +
+            '        }\n' +
+            '\n' +
+            '        @keyframes loading {\n' +
+            '            0% {\n' +
+            '                width: 0;\n' +
+            '            }\n' +
+            '            80% {\n' +
+            '                width: 100%;\n' +
+            '            }\n' +
+            '            100% {\n' +
+            '                width: 100%;\n' +
+            '            }\n' +
+            '        }\n' +
+            '\n' +
+            '        @keyframes blink {\n' +
+            '            0%,\n' +
+            '            100% {\n' +
+            '                opacity: 0;\n' +
+            '            }\n' +
+            '            50% {\n' +
+            '                opacity: 1;\n' +
+            '            }\n' +
+            '        }\n' +
+            '\n' +
+            '    </style>\n' +
+            '    <div class="loader">\n' +
+            '        <div class="loading-text">\n' +
+            '            Upload your note<span class="dot">.</span><span class="dot">.</span\n' +
+            '        ><span class="dot">.</span>\n' +
+            '        </div>\n' +
+            '        <div class="loading-bar-background">\n' +
+            '            <div class="loading-bar">\n' +
+            '                <div class="white-bars-container">\n' +
+            '                    <div class="white-bar"></div>\n' +
+            '                    <div class="white-bar"></div>\n' +
+            '                    <div class="white-bar"></div>\n' +
+            '                    <div class="white-bar"></div>\n' +
+            '                    <div class="white-bar"></div>\n' +
+            '                    <div class="white-bar"></div>\n' +
+            '                    <div class="white-bar"></div>\n' +
+            '                    <div class="white-bar"></div>\n' +
+            '                    <div class="white-bar"></div>\n' +
+            '                    <div class="white-bar"></div>\n' +
+            '                </div>\n' +
+            '            </div>\n' +
+            '        </div>\n' +
+            '    </div>'
+    })
+</script>
 </body>
 </html>

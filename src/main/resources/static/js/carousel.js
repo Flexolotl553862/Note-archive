@@ -30,6 +30,16 @@ $(function () {
         for (let i = start; i < start + k && i < n; i++) {
             notes[i].classList.add('visible');
         }
+        if (pt + k >= n) {
+            rightBtn.classList.add('hidden')
+        } else {
+            rightBtn.classList.remove('hidden')
+        }
+        if (pt - k < 0) {
+            leftBtn.classList.add('hidden')
+        } else {
+            leftBtn.classList.remove('hidden')
+        }
     }
 
     function refresh() {

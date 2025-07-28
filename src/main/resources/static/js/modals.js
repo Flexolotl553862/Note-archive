@@ -113,7 +113,7 @@ $(function () {
                         title: "Error!",
                         text: "Something went wrong."
                     }));
-                    // window.location.reload();
+                    window.location.reload();
                 }
             })
         })

@@ -8,7 +8,7 @@
 
     <div class="flex flex-grow items-center">
         <button th:if="${!notes.isEmpty()}" class="left-btn-wrapper">
-            <div class="hover:bg-gray-600 left-btn">
+            <div class="hover:bg-gray-600 left-btn hidden">
                 <svg class="w-6 h-6 text-white dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                      width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -24,16 +24,16 @@
 
             <div th:each="note : ${notes}" th:id="${note.title} + '-frame'" class="card-wrapper">
                 <div th:if="${note.startSemester} == ${note.endSemester}">
-                    <div th:replace="~{fragments/card :: card(title=${note.title}, subtitle=${'semester ' + note.startSemester}, id=${note.id})}"></div>
+                    <div th:replace="~{fragments/card :: card(title=${note.title}, subtitle=${'semester ' + note.startSemester}, id=${note.id}, authorId=${note.author.id})}"></div>
                 </div>
                 <div th:unless="${note.startSemester} == ${note.endSemester}">
-                    <div th:replace="~{fragments/card :: card(title=${note.title}, subtitle=${'semesters ' + note.startSemester + '-' + note.endSemester}, id=${note.id})}"></div>
+                    <div th:replace="~{fragments/card :: card(title=${note.title}, subtitle=${'semesters ' + note.startSemester + '-' + note.endSemester}, id=${note.id}, authorId=${note.author.id})}"></div>
                 </div>
             </div>
         </div>
 
         <button th:if="${!notes.isEmpty()}" class="right-btn-wrapper">
-            <div class="right-btn hover:bg-gray-600">
+            <div class="right-btn hover:bg-gray-600 hidden">
                 <svg class="w-6 h-6 text-white dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                      width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

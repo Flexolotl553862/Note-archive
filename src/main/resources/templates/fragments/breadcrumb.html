@@ -17,7 +17,7 @@
             <span class="mx-2 text-white">/</span>
             <li>
                 <div class="flex items-center">
-                    <a th:href="${'/note/' + note.id + '/description'}"
+                    <a th:href="${(prefix != null ? prefix : '') + '/note/' + note.id + '/description'}"
                        class="inline-flex items-center text-sm font-medium text-white hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
                         <svg class="w-5 h-5 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                              fill="currentColor" viewBox="0 0 24 24">
@@ -32,7 +32,7 @@
             <li th:if="${path != '' && path != null && !path.isEmpty()}"
                 th:each="i : ${#numbers.sequence(0, 2 * #lists.size(path) - 2)}">
                 <div th:if="${i % 2 == 0}" class="flex items-center">
-                    <a th:href="${'/folder/' + path[i / 2]}"
+                    <a th:href="${(prefix != null ? prefix : '') + '/folder/' + path[i / 2]}"
                        class="inline-flex items-center text-sm font-medium text-white hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
                         <span th:text="${path[i / 2].name}" class="whitespace-nowrap"></span>
                     </a>
