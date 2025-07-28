@@ -14,7 +14,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
-<body class="min-h-screen flex flex-col overflow-x-hidden">
+<style>
+    body {
+        min-height: 100dvh;
+    }
+</style>
+<body class="flex flex-col overflow-x-hidden">
 <div th:replace="~{fragments/navbar}"></div>
 <main class="flex-grow">
     <div class="w-[85%] mx-auto">

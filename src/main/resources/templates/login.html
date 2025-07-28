@@ -11,7 +11,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
-<body class="min-h-screen flex flex-col overflow">
+<style>
+    body {
+        min-height: 100dvh;
+    }
+</style>
+<body class="flex flex-col overflow">
 
 <div th:insert="~{fragments/logo}" class="my-6 justify-items-center"></div>
 
@@ -22,8 +27,8 @@
             <div class="glass-form py-6 px-8 mx-auto x-full rounded-2xl">
                 <h2 class="mb-6 text-xl font-bold text-white">Login</h2>
                 <form th:object="${loginForm}" method="post" th:action="@{/login}" id="login-form">
-                    <div class="grid gap-4 sm:grid-cols-2 sm:gap-4">
-                        <div class="sm:col-span-2 relative">
+                    <div class="grid gap-4">
+                        <div class="relative">
                             <div th:replace="~{fragments/form-field.html :: form-field('loginOrEmail', 'Login or email', 'text', '')}"></div>
                         </div>
                         <style>
@@ -31,7 +36,7 @@
                                 top: 0.9rem;
                             }
                         </style>
-                        <div class="sm:col-span-2 relative">
+                        <div class="relative">
                             <div th:replace="~{fragments/form-field.html :: form-field('password', 'Password', 'text', '')}"></div>
                             <button type="button" data-hs-toggle-password='{
                               "target": "#password"
@@ -52,7 +57,7 @@
                                 </svg>
                             </button>
                         </div>
-                        <div class="sm:col-span-2">
+                        <div>
                             <p class="text-sm text-white">
                                 Don't have an account yet? <a href="/register"
                                                               class="font-medium text-blue-600 hover:underline">

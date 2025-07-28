@@ -1,5 +1,7 @@
 package org.example.notearchive.controller;
 
+import org.example.notearchive.dto.CreateDirectoryForm;
+import org.example.notearchive.dto.FileForm;
 import org.example.notearchive.service.LinkService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +33,8 @@ public class LinkAccessController {
     @ModelAttribute
     public void initAll(@PathVariable String slug, Model model) {
         model.addAttribute("prefix", "/public/" + slug);
+        model.addAttribute("createDirectoryForm", new CreateDirectoryForm());
+        model.addAttribute("fileForm", new FileForm());
     }
 
     @GetMapping("/note/{id}")
@@ -51,6 +55,18 @@ public class LinkAccessController {
             return "redirect:/not/found";
         }
         return notePageController.folder(id, model);
+    }
+
+    @GetMapping("/file/{id}")
+    public ResponseEntity<Resource> openFile(
+            @PathVariable long id,
+            @PathVariable("slug") String slug,
+            RedirectAttributes redirectAttributes
+    ) {
+        if (!linkService.canOpenEntry(slug, id)) {
+            return ResponseEntity.notFound().build();
+        }
+        return fileController.openFile(id, redirectAttributes);
     }
 
     @GetMapping("/note/{id}/description")

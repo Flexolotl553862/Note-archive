@@ -8,7 +8,7 @@
 
     <div class="flex flex-grow items-center">
         <button th:if="${!notes.isEmpty()}" class="left-btn-wrapper">
-            <div class="hover:bg-gray-600 left-btn hidden">
+            <div class="hover:bg-gray-600 left-btn" style="visibility: hidden">
                 <svg class="w-6 h-6 text-white dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                      width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -33,7 +33,7 @@
         </div>
 
         <button th:if="${!notes.isEmpty()}" class="right-btn-wrapper">
-            <div class="right-btn hover:bg-gray-600 hidden">
+            <div class="right-btn hover:bg-gray-600" style="visibility: hidden">
                 <svg class="w-6 h-6 text-white dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                      width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

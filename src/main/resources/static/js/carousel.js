@@ -31,14 +31,14 @@ $(function () {
             notes[i].classList.add('visible');
         }
         if (pt + k >= n) {
-            rightBtn.classList.add('hidden')
+            rightBtn.style.visibility = 'hidden';
         } else {
-            rightBtn.classList.remove('hidden')
+            rightBtn.style.visibility = 'visible';
         }
         if (pt - k < 0) {
-            leftBtn.classList.add('hidden')
+            leftBtn.style.visibility = 'hidden';
         } else {
-            leftBtn.classList.remove('hidden')
+            leftBtn.style.visibility = 'visible';
         }
     }
 

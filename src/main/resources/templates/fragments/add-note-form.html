@@ -1,4 +1,11 @@
-<div th:fragment="add-note-form" class="card md:max-w-xl mx-auto max-w-[75%] mb-[2.5rem]">
+<div th:fragment="add-note-form" class="card items-center md:max-w-xl max-w-[75%] mx-auto mb-[2.5rem]">
+    <style>
+        @media (max-width: 640px) {
+            .card {
+                max-width: 85%;
+            }
+        }
+    </style>
     <link rel="stylesheet" href="/css/gradient-border.css">
     <div class="card-info">
         <div class="glass-form py-6 px-4 mx-auto x-full rounded-2xl">

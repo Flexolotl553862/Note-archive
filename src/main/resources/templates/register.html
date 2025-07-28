@@ -11,17 +11,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
-<body class="min-h-screen flex flex-col overflow">
+<style>
+    body {
+        min-height: 100dvh;
+    }
+</style>
+<body class="flex flex-col overflow">
 <div th:insert="~{fragments/logo}" class="my-6 justify-items-center"></div>
 
 <main class="flex-grow flex items-center">
-    <div class="card md:max-w-xl mx-auto max-w-[75%] md:mb-[2.5rem]">
+    <style>
+        .card {
+            max-width: 85%;
+        }
+    </style>
+    <div class="card mx-auto md:mb-[2.5rem]">
         <link rel="stylesheet" href="/css/gradient-border.css">
         <div class="card-info">
-            <div class="glass-form py-6 px-8 mx-auto x-full rounded-2xl">
+            <div class="glass-form py-6 px-4 mx-auto x-full rounded-2xl">
                 <h2 class="mb-6 text-xl font-bold text-white">Register</h2>
                 <form th:object="${registerForm}" method="post" th:action="@{/register}" id="register-form">
-                    <div class="grid gap-4 sm:grid-cols-2 sm:gap-4">
+                    <div class="grid gap-4 grid-cols-2">
 
                         <div class="w-full relative">
                             <div th:replace="~{fragments/form-field.html :: form-field('firstName', 'First name', 'text', 'save-input')}"></div>
@@ -29,10 +39,10 @@
                         <div class="w-full relative">
                             <div th:replace="~{fragments/form-field.html :: form-field('lastName', 'Last name', 'text', 'save-input')}"></div>
                         </div>
-                        <div class="sm:col-span-2 relative">
+                        <div class="col-span-2 relative">
                             <div th:replace="~{fragments/form-field.html :: form-field('email', 'Email address', 'text', 'save-input')}"></div>
                         </div>
-                        <div class="sm:col-span-2 relative">
+                        <div class="col-span-2 relative">
                             <div th:replace="~{fragments/form-field.html :: form-field('login', 'Login', 'text', 'save-input')}"></div>
                         </div>
 
@@ -42,7 +52,7 @@
                             }
                         </style>
 
-                        <div class="sm:col-span-2 relative">
+                        <div class="col-span-2 relative">
                             <div th:replace="~{fragments/form-field.html :: form-field('password', 'Password', 'text', 'save-input')}"></div>
                             <button type="button" data-hs-toggle-password='{
                               "target": "#password"
@@ -63,7 +73,7 @@
                                 </svg>
                             </button>
                         </div>
-                        <div class="sm:col-span-2 relative">
+                        <div class="col-span-2 relative">
                             <input type="text" id="password-confirmation"
                                    class="my-input block rounded-lg px-2.5 pb-1.5 pt-4 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                    placeholder=" "/>
@@ -93,7 +103,7 @@
                                 </svg>
                             </button>
                         </div>
-                        <div class="sm:col-span-2">
+                        <div class="col-span-2">
                             <p class="text-sm text-white">
                                 Already have an account? <a href="/login"
                                                             class="font-medium text-blue-600 hover:underline">

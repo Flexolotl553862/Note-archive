@@ -26,6 +26,12 @@
                 border-radius: 15px;
                 background-color: rgba(40, 40, 50, 0.85);
             }
+
+            @media (max-width: 640px) {
+                .description {
+                    padding: 1rem;
+                }
+            }
         </style>
 
         <div class="text-white description" id="description">
@@ -70,8 +76,9 @@
 <script src="/assets/@preline/collapse/index.js"></script>
 <script src="/assets/markdown-it/dist/markdown-it.js"></script>
 <script th:inline="javascript">
-    let noteId = /*[[${note.id}]]*/ '';
-    let prefix = /*[[${prefix}]]*/ '';
+    let noteId = /*[[${note.id ?: '' }]]*/ '';
+    let prefix = /*[[${prefix ?: '' }]]*/ '';
+    console.log(prefix)
     const url = prefix + '/api/note/' + noteId + '/description'
     const markdown = document.getElementById('markdown-body');
     const loader = document.getElementById('loader');
