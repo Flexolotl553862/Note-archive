@@ -7,7 +7,7 @@ import org.example.notearchive.dto.FileForm;
 import org.example.notearchive.exception.StorageException;
 import org.example.notearchive.service.EntityHelper;
 import org.example.notearchive.service.NoteService;
-import org.example.notearchive.service.StorageService;
+import org.example.notearchive.service.StorageEntryService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,11 +23,11 @@ import java.util.Map;
 @SessionAttributes("note, user")
 public class NotePageController {
     private final EntityHelper entityHelper;
-    private final StorageService storageService;
+    private final StorageEntryService storageService;
     private final NoteService noteService;
 
     public NotePageController(
-            StorageService storageService,
+            StorageEntryService storageService,
             NoteService noteService,
             EntityHelper entityHelper) {
 

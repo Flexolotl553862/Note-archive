@@ -2,6 +2,7 @@ package org.example.notearchive.controller;
 
 import org.example.notearchive.dto.CreateDirectoryForm;
 import org.example.notearchive.dto.FileForm;
+import org.example.notearchive.service.EntityHelper;
 import org.example.notearchive.service.LinkService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -19,15 +20,18 @@ public class LinkAccessController {
     private final LinkService linkService;
     private final FileController fileController;
     private final NotePageController notePageController;
+    private final EntityHelper entityHelper;
 
     public LinkAccessController(
             LinkService linkService,
             FileController fileController,
-            NotePageController notePageController
+            NotePageController notePageController,
+            EntityHelper entityHelper
     ) {
         this.linkService = linkService;
         this.fileController = fileController;
         this.notePageController = notePageController;
+        this.entityHelper = entityHelper;
     }
 
     @ModelAttribute
@@ -39,7 +43,7 @@ public class LinkAccessController {
 
     @GetMapping("/note/{id}")
     public String getNote(@PathVariable(value = "slug", required = false) String slug, @PathVariable Long id) {
-        if (!linkService.canOpenNote(slug, id)) {
+        if (!linkService.canOpenNote(slug, entityHelper.getNote(id))) {
             return "redirect:/not/found";
         }
         return "redirect:/public/" + slug + "/note/" + id + "/description";
@@ -51,7 +55,7 @@ public class LinkAccessController {
             @PathVariable Long id,
             Model model
     ) {
-        if (!linkService.canOpenEntry(slug, id)) {
+        if (!linkService.canOpenEntry(slug, entityHelper.getEntry(id))) {
             return "redirect:/not/found";
         }
         return notePageController.folder(id, model);
@@ -63,7 +67,7 @@ public class LinkAccessController {
             @PathVariable("slug") String slug,
             RedirectAttributes redirectAttributes
     ) {
-        if (!linkService.canOpenEntry(slug, id)) {
+        if (!linkService.canOpenEntry(slug, entityHelper.getEntry(id))) {
             return ResponseEntity.notFound().build();
         }
         return fileController.openFile(id, redirectAttributes);
@@ -71,7 +75,7 @@ public class LinkAccessController {
 
     @GetMapping("/note/{id}/description")
     public String noteDescription(@PathVariable("slug") String slug, @PathVariable("id") long id, Model model) {
-        if (!linkService.canOpenNote(slug, id)) {
+        if (!linkService.canOpenNote(slug, entityHelper.getNote(id))) {
             return "redirect:/not/found";
         }
         return notePageController.noteDescription(id, model);
@@ -79,7 +83,7 @@ public class LinkAccessController {
 
     @GetMapping("/api/note/{id}/description")
     public ResponseEntity<String> getMarkdownDescription(@PathVariable("slug") String slug, @PathVariable long id) {
-        if (!linkService.canOpenNote(slug, id)) {
+        if (!linkService.canOpenNote(slug, entityHelper.getNote(id))) {
             return ResponseEntity.notFound().build();
         }
         return notePageController.getMarkdownDescription(id);
@@ -91,7 +95,7 @@ public class LinkAccessController {
             @PathVariable("slug") String slug,
             RedirectAttributes redirectAttributes
     ) {
-        if (!linkService.canOpenEntry(slug, id)) {
+        if (!linkService.canOpenEntry(slug, entityHelper.getEntry(id))) {
             return ResponseEntity.notFound().build();
         }
         return fileController.downloadFile(id, redirectAttributes);

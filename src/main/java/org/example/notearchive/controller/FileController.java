@@ -8,7 +8,7 @@ import org.example.notearchive.dto.FileForm;
 import org.example.notearchive.exception.StorageException;
 import org.example.notearchive.filestorage.FileStorage;
 import org.example.notearchive.service.EntityHelper;
-import org.example.notearchive.service.StorageService;
+import org.example.notearchive.service.StorageEntryService;
 import org.example.notearchive.validator.CreateDirectoryValidator;
 import org.example.notearchive.validator.CreateFileValidator;
 import org.springframework.core.io.FileSystemResource;
@@ -32,7 +32,7 @@ import java.util.Map;
 
 @Controller
 public class FileController {
-    private final StorageService storageService;
+    private final StorageEntryService storageService;
     private final CreateDirectoryValidator createDirectoryValidator;
     private final CreateFileValidator createFileValidator;
     private final FileStorage fileStorage;
@@ -40,7 +40,7 @@ public class FileController {
     private final ResponseHelper responseHelper;
 
     public FileController(
-            StorageService storageService,
+            StorageEntryService storageService,
             CreateDirectoryValidator createDirectoryValidator,
             CreateFileValidator createFileValidator,
             FileStorage fileStorage,
@@ -117,7 +117,10 @@ public class FileController {
         } catch (StorageException ignored) {
             return responseHelper.error("Could not create " + createDirectoryForm.getDirectoryName() + ".");
         }
-        return responseHelper.ok("Successfully created.",createDirectoryForm.getDirectoryName() + " has been created.");
+        return responseHelper.ok(
+                "Successfully created.",
+                createDirectoryForm.getDirectoryName() + " has been created."
+        );
     }
 
     @PostMapping("/file/create")
@@ -131,14 +134,21 @@ public class FileController {
             return responseHelper.error(bindingResult.getFieldError().getDefaultMessage());
         }
         try {
-            storageService.uploadMultipartFile(fileForm.getFileCreate(), fileForm.getFileParentId());
+            fileStorage.saveAsFile(fileForm.getFileCreate(), entityHelper.getEntry(fileForm.getFileParentId()));
         } catch (StorageException ignored) {
             return responseHelper.error("Could not create " + fileForm.getFileCreate().getOriginalFilename() + ".");
         }
-        return responseHelper.ok("Successfully added.", fileForm.getFileCreate().getOriginalFilename() + " has been added.");
+        return responseHelper.ok(
+                "Successfully added.",
+                fileForm.getFileCreate().getOriginalFilename() + " has been added."
+        );
     }
 
-    private ResponseEntity<Resource> getFileForResponse(long id, String dispositionType, RedirectAttributes redirectAttributes) {
+    private ResponseEntity<Resource> getFileForResponse(
+            long id,
+            String dispositionType,
+            RedirectAttributes redirectAttributes
+    ) {
         Tika tika = new Tika();
         try {
             File file = fileStorage.getEntryContent(entityHelper.getEntry(id));

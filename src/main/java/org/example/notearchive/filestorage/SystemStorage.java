@@ -6,6 +6,7 @@ import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.exception.StorageException;
 import org.example.notearchive.repository.NoteRepository;
 import org.example.notearchive.repository.StorageEntryRepository;
+import org.example.notearchive.service.StorageEntryService;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,11 +29,13 @@ public class SystemStorage implements FileStorage {
     private final String storagePath;
     private final StorageEntryRepository storageEntryRepository;
     private final NoteRepository noteRepository;
+    private final StorageEntryService storageService;
 
-    public SystemStorage(StorageEntryRepository storageEntryRepository, NoteRepository noteRepository) {
+    public SystemStorage(StorageEntryRepository storageEntryRepository, NoteRepository noteRepository, StorageEntryService storageService) {
         this.storagePath = System.getenv("STORAGE_PATH");
         this.storageEntryRepository = storageEntryRepository;
         this.noteRepository = noteRepository;
+        this.storageService = storageService;
     }
 
     @Override
@@ -79,22 +82,25 @@ public class SystemStorage implements FileStorage {
     @Override
     public void saveAsFile(InputStream data, String name, StorageEntry root) throws StorageException {
         try {
+            storageService.createEntry(root, name);
             Path filePath = Path.of(storagePath, root.getPath(), name);
             Files.createDirectories(filePath.getParent());
             data.transferTo(new FileOutputStream(filePath.toFile()));
-            StorageEntry entry = new StorageEntry(
-                    name,
-                    Path.of(root.getPath(), name).toFile().getPath(),
-                    StorageEntry.ENTRY_TYPE.FILE,
-                    root.getParentNote()
-            );
-            entry.setParent(root);
-            entry.setParentNote(root.getParentNote());
-            root.addChild(entry);
         } catch (IOException e) {
             throw new StorageException("Could not save file: " + e.getMessage(), e);
-        } catch (InvalidPathException e) {
-            throw new StorageException("Invalid path: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void saveAsFile(MultipartFile data, StorageEntry root) throws StorageException {
+        try {
+            storageService.createEntry(root, data.getOriginalFilename());
+            Path filePath = Path.of(storagePath, root.getPath(), data.getOriginalFilename());
+            Files.createDirectories(filePath.getParent());
+            Files.createFile(filePath);
+            data.transferTo(filePath.toFile());
+        } catch (IOException e) {
+            throw new StorageException("Could not save file: " + e.getMessage(), e);
         }
     }
 

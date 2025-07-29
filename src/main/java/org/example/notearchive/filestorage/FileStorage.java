@@ -14,6 +14,8 @@ public interface FileStorage {
 
     void saveAsFile(InputStream inputStream, String originalFilename, StorageEntry root) throws StorageException;
 
+    void saveAsFile(MultipartFile file, StorageEntry root) throws StorageException;
+
     File getEntryContent(StorageEntry entry) throws StorageException;
 
     void deleteEntry(StorageEntry entry) throws StorageException;

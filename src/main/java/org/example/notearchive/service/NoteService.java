@@ -8,32 +8,27 @@ import org.example.notearchive.exception.StorageException;
 import org.example.notearchive.filestorage.FileStorage;
 import org.example.notearchive.repository.NoteRepository;
 import org.example.notearchive.repository.StorageEntryRepository;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Service
 public class NoteService {
-    private final StorageService storageService;
     private final NoteRepository noteRepository;
     private final StorageEntryRepository storageEntryRepository;
     private final FileStorage fileStorage;
     private final AIService aiService;
 
     public NoteService(
-            StorageService storageService,
             NoteRepository noteRepository,
             StorageEntryRepository storageEntryRepository,
             FileStorage fileStorage,
             AIService aiService
     ) {
-        this.storageService = storageService;
         this.noteRepository = noteRepository;
         this.storageEntryRepository = storageEntryRepository;
         this.fileStorage = fileStorage;
@@ -54,7 +49,9 @@ public class NoteService {
                 note
         );
         note.setContent(entry);
-        storageService.uploadMultipartFile(noteForm.getFile(), entry, true);
+        if (!fileStorage.tryToSaveAsNestedFolders(noteForm.getFile(), entry)) {
+            fileStorage.saveAsFile(noteForm.getFile(), entry);
+        }
         noteRepository.save(note);
     }
 
@@ -68,7 +65,7 @@ public class NoteService {
                     .findFirst()
                     .orElseThrow();
 
-            File descriptionFile = storageService.getEntryContent(descriptionEntry);
+            File descriptionFile = fileStorage.getEntryContent(descriptionEntry);
             return Files.readString(descriptionFile.toPath());
         } catch (Exception e) {
             throw new StorageException("Could not find description markdown file.", e);
@@ -92,7 +89,7 @@ public class NoteService {
     }
 
     public void changeEditors(Note note, User editor, boolean state) {
-        Set<User> editors = note.getEditors() == null ? new HashSet<User>() : note.getEditors();
+        Set<User> editors = note.getEditors() == null ? new HashSet<>() : note.getEditors();
         if (state) {
             editors.add(editor);
         } else {
