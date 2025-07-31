@@ -18,9 +18,11 @@ public interface FileStorage {
 
     File getEntryContent(StorageEntry entry) throws StorageException;
 
-    void deleteEntry(StorageEntry entry) throws StorageException;
+    byte[] getEntryContentAsZip(StorageEntry entry) throws StorageException;
 
-    void deleteNote(Note note) throws StorageException;
+    void deleteEntryContent(StorageEntry entry) throws StorageException;
+
+    void deleteNoteContent(Note note) throws StorageException;
 
     void createDirectory(String directoryName, StorageEntry parent) throws StorageException;
 }

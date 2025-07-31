@@ -3,14 +3,15 @@ package org.example.notearchive.controller;
 import jakarta.validation.Valid;
 import org.apache.tika.Tika;
 import org.example.notearchive.domain.Note;
+import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.dto.CreateDirectoryForm;
 import org.example.notearchive.dto.FileForm;
 import org.example.notearchive.exception.StorageException;
 import org.example.notearchive.filestorage.FileStorage;
 import org.example.notearchive.service.EntityHelper;
-import org.example.notearchive.service.StorageEntryService;
 import org.example.notearchive.validator.CreateDirectoryValidator;
 import org.example.notearchive.validator.CreateFileValidator;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -32,7 +33,6 @@ import java.util.Map;
 
 @Controller
 public class FileController {
-    private final StorageEntryService storageService;
     private final CreateDirectoryValidator createDirectoryValidator;
     private final CreateFileValidator createFileValidator;
     private final FileStorage fileStorage;
@@ -40,13 +40,11 @@ public class FileController {
     private final ResponseHelper responseHelper;
 
     public FileController(
-            StorageEntryService storageService,
             CreateDirectoryValidator createDirectoryValidator,
             CreateFileValidator createFileValidator,
             FileStorage fileStorage,
             EntityHelper entityHelper,
             ResponseHelper responseHelper) {
-        this.storageService = storageService;
         this.createDirectoryValidator = createDirectoryValidator;
         this.createFileValidator = createFileValidator;
         this.fileStorage = fileStorage;
@@ -73,14 +71,21 @@ public class FileController {
         return getFileForResponse(id, "attachment", redirectAttributes);
     }
 
+    @GetMapping("/download/entry/{id}")
+    public ResponseEntity<Resource> downloadEntry(@PathVariable long id, RedirectAttributes redirectAttributes) {
+        return getFileForResponse(id, "attachment", redirectAttributes);
+    }
+
     @PostMapping("/delete/entry")
     @PreAuthorize("@userService.canChangeEntry(#entryId, authentication)")
     public ResponseEntity<Map<String, Object>> deleteEntry(
             @RequestParam("entryId") long entryId,
             @RequestParam("entryName") String entryName
     ) {
+        StorageEntry entry = entityHelper.getEntry(entryId);
         try {
-            fileStorage.deleteEntry(entityHelper.getEntry(entryId));
+            fileStorage.deleteEntryContent(entry);
+            entityHelper.getStorageEntryRepository().delete(entry);
         } catch (StorageException e) {
             return responseHelper.error("Could not delete " + entryName);
         }
@@ -92,7 +97,8 @@ public class FileController {
     public ResponseEntity<Map<String, Object>> deleteNote(@RequestParam("noteId") long noteId) {
         Note note = entityHelper.getNote(noteId);
         try {
-            fileStorage.deleteNote(note);
+            fileStorage.deleteNoteContent(note);
+            entityHelper.getNoteRepository().delete(note);
         } catch (StorageException ignored) {
             return responseHelper.error("Could not delete note.");
         }
@@ -151,17 +157,27 @@ public class FileController {
     ) {
         Tika tika = new Tika();
         try {
-            File file = fileStorage.getEntryContent(entityHelper.getEntry(id));
+            StorageEntry entry = entityHelper.getEntry(id);
+            Resource resource;
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType(tika.detect(file)));
+            String name = entry.getName() + ".zip";
+            if (entry.isDirectory()) {
+                resource = new ByteArrayResource(fileStorage.getEntryContentAsZip(entry));
+                headers.setContentType(MediaType.parseMediaType("application/zip"));
+            } else {
+                File file = fileStorage.getEntryContent(entityHelper.getEntry(id));
+                resource = new FileSystemResource(file);
+                headers.setContentType(MediaType.parseMediaType(tika.detect(file)));
+                name = file.getName();
+            }
             headers.setContentDisposition(ContentDisposition
                     .builder(dispositionType)
-                    .filename(file.getName(), StandardCharsets.UTF_8)
+                    .filename(name, StandardCharsets.UTF_8)
                     .build()
             );
             return ResponseEntity.ok()
                     .headers(headers)
-                    .body(new FileSystemResource(file));
+                    .body(resource);
         } catch (StorageException e) {
             redirectAttributes.addFlashAttribute("message", e.getMessage());
         } catch (IOException e) {

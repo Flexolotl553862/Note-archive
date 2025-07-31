@@ -4,17 +4,13 @@ import org.apache.tika.Tika;
 import org.example.notearchive.domain.Note;
 import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.exception.StorageException;
-import org.example.notearchive.repository.NoteRepository;
 import org.example.notearchive.repository.StorageEntryRepository;
 import org.example.notearchive.service.StorageEntryService;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -22,19 +18,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 @Component
 public class SystemStorage implements FileStorage {
 
     private final String storagePath;
     private final StorageEntryRepository storageEntryRepository;
-    private final NoteRepository noteRepository;
     private final StorageEntryService storageService;
 
-    public SystemStorage(StorageEntryRepository storageEntryRepository, NoteRepository noteRepository, StorageEntryService storageService) {
+    public SystemStorage(StorageEntryRepository storageEntryRepository, StorageEntryService storageService) {
         this.storagePath = System.getenv("STORAGE_PATH");
         this.storageEntryRepository = storageEntryRepository;
-        this.noteRepository = noteRepository;
         this.storageService = storageService;
     }
 
@@ -68,24 +63,58 @@ public class SystemStorage implements FileStorage {
     }
 
     @Override
-    public void deleteEntry(StorageEntry entry) {
-        FileSystemUtils.deleteRecursively(new File(storagePath, entry.getPath()));
-        storageEntryRepository.delete(entry);
+    public byte[] getEntryContentAsZip(StorageEntry entry) throws StorageException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            ZipOutputStream zos = new ZipOutputStream(baos);
+            getZip(entry, zos, new StringBuilder());
+            zos.finish();
+        } catch (IOException e) {
+            throw new StorageException("Could not find zip file: " + entry.getPath(), e);
+        }
+        return baos.toByteArray();
+    }
+
+    private void getZip(StorageEntry entry, ZipOutputStream zos, StringBuilder path) throws IOException, StorageException {
+        int length = 0;
+        if (!path.isEmpty()) {
+            path.append("/");
+            length++;
+        }
+        path.append(entry.getName());
+        length += entry.getName().length();
+        if (!entry.isDirectory()) {
+            zos.putNextEntry(new ZipEntry(path.toString()));
+            try (FileInputStream fis = new FileInputStream(getEntryContent(entry))) {
+                fis.transferTo(zos);
+            }
+        } else {
+            zos.putNextEntry(new ZipEntry(path.toString() + "/"));
+        }
+        zos.closeEntry();
+        for (StorageEntry child : entry.getChildren()) {
+            getZip(child, zos, path);
+        }
+        path.delete(path.length() - length, path.length());
     }
 
     @Override
-    public void deleteNote(Note note) {
+    public void deleteEntryContent(StorageEntry entry) {
+        FileSystemUtils.deleteRecursively(new File(storagePath, entry.getPath()));
+    }
+
+    @Override
+    public void deleteNoteContent(Note note) {
         FileSystemUtils.deleteRecursively(new File(storagePath, note.getContent().getPath()));
-        noteRepository.delete(note);
     }
 
     @Override
     public void saveAsFile(InputStream data, String name, StorageEntry root) throws StorageException {
         try {
-            storageService.createEntry(root, name);
             Path filePath = Path.of(storagePath, root.getPath(), name);
             Files.createDirectories(filePath.getParent());
             data.transferTo(new FileOutputStream(filePath.toFile()));
+            storageService.createEntry(root, name);
         } catch (IOException e) {
             throw new StorageException("Could not save file: " + e.getMessage(), e);
         }
@@ -94,11 +123,10 @@ public class SystemStorage implements FileStorage {
     @Override
     public void saveAsFile(MultipartFile data, StorageEntry root) throws StorageException {
         try {
-            storageService.createEntry(root, data.getOriginalFilename());
             Path filePath = Path.of(storagePath, root.getPath(), data.getOriginalFilename());
             Files.createDirectories(filePath.getParent());
-            Files.createFile(filePath);
             data.transferTo(filePath.toFile());
+            storageService.createEntry(root, data.getOriginalFilename());
         } catch (IOException e) {
             throw new StorageException("Could not save file: " + e.getMessage(), e);
         }

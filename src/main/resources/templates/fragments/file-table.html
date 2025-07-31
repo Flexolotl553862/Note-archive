@@ -97,7 +97,7 @@
                 <!-- download and delete buttons -->
                 <td class="py-4 text-right">
                     <div class="flex justify-end">
-                        <a th:href="${(prefix != null ? prefix : '') + '/download/file/' + entry.id}" th:if="${!entry.isDirectory}">
+                        <a th:href="${(prefix != null ? prefix : '') + '/download/entry/' + entry.id}">
                             <svg class="w-5 h-5 text-white mr-3 hover:text-blue-600" aria-hidden="true"
                                  xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
                                  viewBox="0 0 24 24">

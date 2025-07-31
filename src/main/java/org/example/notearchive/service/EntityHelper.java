@@ -2,6 +2,7 @@ package org.example.notearchive.service;
 
 import com.google.api.client.util.Lists;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.Getter;
 import org.example.notearchive.domain.Link;
 import org.example.notearchive.domain.Note;
 import org.example.notearchive.domain.StorageEntry;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
+@Getter
 public class EntityHelper {
     private final NoteRepository noteRepository;
     private final StorageEntryRepository storageEntryRepository;
