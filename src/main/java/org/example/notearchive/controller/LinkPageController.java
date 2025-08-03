@@ -2,10 +2,12 @@ package org.example.notearchive.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.example.notearchive.domain.Link;
+import org.example.notearchive.domain.Note;
 import org.example.notearchive.dto.LinkForm;
 import org.example.notearchive.dto.RenewLinkForm;
-import org.example.notearchive.service.EntityHelper;
+import org.example.notearchive.exception.MyLinkException;
 import org.example.notearchive.service.LinkService;
 import org.example.notearchive.validator.LinkValidator;
 import org.springframework.http.ResponseEntity;
@@ -19,32 +21,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @Controller
-public class LinkController {
+@RequiredArgsConstructor
+public class LinkPageController {
     private final LinkService linkService;
     private final LinkValidator linkValidator;
     private final ResponseHelper responseHelper;
-    private final EntityHelper entityHelper;
-
-    public LinkController(
-            LinkService linkService,
-            LinkValidator linkValidator,
-            ResponseHelper responseHelper,
-            EntityHelper entityHelper
-    ) {
-        this.linkService = linkService;
-        this.linkValidator = linkValidator;
-        this.responseHelper = responseHelper;
-        this.entityHelper = entityHelper;
-    }
 
     @PostMapping("/generate/link")
-    @PreAuthorize("@userService.isNoteEditor(#linkForm.noteId, authentication)")
+    @PreAuthorize("@noteService.isNoteEditor(#linkForm.note, authentication)")
     public ResponseEntity<Map<String, Object>> generateLink(
             @Valid @ModelAttribute LinkForm linkForm,
             BindingResult bindingResult,
             Authentication authentication
     ) {
-
         linkValidator.validate(linkForm, bindingResult);
         if (bindingResult.hasErrors()) {
             return responseHelper.error(bindingResult.getFieldError().getDefaultMessage());
@@ -54,49 +43,37 @@ public class LinkController {
     }
 
     @PostMapping("/delete/link")
-    @PreAuthorize("@userService.isLinkAuthor(#linkId, authentication)")
-    public ResponseEntity<Map<String, Object>> deleteLink(
-            @RequestParam("linkId") Long linkId
-    ) {
-        linkService.deleteLink(entityHelper.getLink(linkId));
-        return ResponseEntity.ok(Map.of(
-                "ok", true,
-                "title", "Successfully deleted",
-                "text", "Link has been deleted!"
-        ));
+    @PreAuthorize("@myLinkService.isLinkAuthor(#link, authentication)")
+    public ResponseEntity<Map<String, Object>> deleteLink(@RequestParam Link link) {
+        linkService.deleteLink(link);
+        return responseHelper.ok("Successfully deleted", "Link has been deleted!");
     }
 
     @PostMapping("/renew/link")
-    @PreAuthorize("@userService.isLinkAuthor(#renewLinkForm.linkId, authentication)")
-    public ResponseEntity<Map<String, Object>> renewLink(
-            @ModelAttribute RenewLinkForm renewLinkForm
-    ) {
-        Link link = entityHelper.getLink(renewLinkForm.getLinkId());
-        if (!linkService.isLinkActive(link)) {
-            return responseHelper.error("Could not set date in past.");
+    @PreAuthorize("@myLinkService.isLinkAuthor(#renewLinkForm.link, authentication)")
+    public ResponseEntity<Map<String, Object>> renewLink(@ModelAttribute RenewLinkForm renewLinkForm) {
+        try {
+            linkService.renewLink(renewLinkForm.getLink(), renewLinkForm.getDate());
+        } catch (MyLinkException e) {
+            return responseHelper.error(e.getMessage());
         }
-        linkService.renewLink(link, renewLinkForm.getDate());
         return responseHelper.ok("Successfully renewed", "Link has been renewed!");
     }
 
-    @GetMapping("/note/{id}/links")
-    @PreAuthorize("@userService.isNoteEditor(#noteId, authentication)")
+    @GetMapping("/note/{note}/links")
+    @PreAuthorize("@noteService.isNoteEditor(#note, authentication)")
     public String getNoteLinks(
-            @PathVariable("id") long noteId,
+            @PathVariable Note note,
             Model model,
             Authentication authentication,
             HttpServletRequest request
     ) {
         model.addAllAttributes(Map.of(
-                "links", entityHelper
-                        .getNote(noteId)
-                        .getLinks()
-                        .stream()
-                        .filter(link -> link.getAuthor().equals(authentication.getPrincipal()))
-                        .toList(),
+                "links", note.getLinks().stream()
+                        .filter(link -> link.getAuthor().equals(authentication.getPrincipal())).toList(),
                 "linkForm", new LinkForm(),
                 "renewLinkForm", new RenewLinkForm(),
-                "noteId", noteId,
+                "noteId", note.getId(),
                 "root", request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
         ));
         return "note-links";

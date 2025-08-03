@@ -43,6 +43,7 @@ public class StorageEntry extends AbstractEntity {
     @NotNull
     private ENTRY_TYPE type;
 
+    private Boolean lock;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private Note parentNote;
@@ -55,6 +56,7 @@ public class StorageEntry extends AbstractEntity {
         this.name = name;
         this.path = path;
         this.type = type;
+        this.lock = false;
         this.parentNote = parentNote;
     }
 

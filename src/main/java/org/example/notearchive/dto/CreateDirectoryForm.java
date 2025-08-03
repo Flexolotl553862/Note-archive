@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.notearchive.domain.StorageEntry;
 
 @Getter
 @Setter
@@ -16,5 +17,5 @@ public class CreateDirectoryForm {
     private String directoryName;
 
     @NotNull(message = "Parent folder is absent.")
-    private Long parentId;
+    private StorageEntry parent;
 }

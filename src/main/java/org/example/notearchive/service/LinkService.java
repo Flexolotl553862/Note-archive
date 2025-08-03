@@ -1,10 +1,13 @@
 package org.example.notearchive.service;
 
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.example.notearchive.domain.Link;
 import org.example.notearchive.domain.Note;
 import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.domain.User;
 import org.example.notearchive.dto.LinkForm;
+import org.example.notearchive.exception.MyLinkException;
 import org.example.notearchive.repository.LinkRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -13,31 +16,37 @@ import java.util.Date;
 import java.util.UUID;
 
 @Service("myLinkService")
+@RequiredArgsConstructor
 public class LinkService {
     private final LinkRepository linkRepository;
-    private final EntityHelper entityHelper;
 
-    public LinkService(LinkRepository linkRepository, EntityHelper entityHelper) {
-        this.linkRepository = linkRepository;
-        this.entityHelper = entityHelper;
+    public boolean isLinkAuthor(Link link, Authentication authentication) {
+        return link.getAuthor().getId().equals(
+                ((User) authentication.getPrincipal()).getId()
+        );
     }
 
-    public boolean canOpenNote(String slug, Note note) {
-        Link link = linkRepository.findByLink(slug).orElse(null);
-        return (link != null
-                && !link.getExpiryDate().before(new Date())
-                && note.getEditors().contains(link.getAuthor()));
+    public boolean linkIsActive(Link link) {
+        return link.getExpiryDate().after(new Date());
     }
 
-    public boolean canOpenEntry(String slug, StorageEntry entry) {
-        return canOpenNote(slug, entry.getParentNote());
+    public boolean canOpenNoteByLink(Note note, Link link) {
+        return linkIsActive(link) && link.getNote().equals(note);
+    }
+
+    public boolean canOpenEntryByLink(StorageEntry entry, Link link) {
+        return canOpenNoteByLink(entry.getParentNote(), link) && !entry.getLock();
     }
 
     public void generateLink(LinkForm linkForm, Authentication authentication) {
+        String slug = UUID.randomUUID().toString();
+        while (linkRepository.existsByLink(slug)) {
+            slug = UUID.randomUUID().toString();
+        }
         Link link = new Link(
-                UUID.randomUUID().toString(),
+                slug,
                 linkForm.getDescription(),
-                entityHelper.getNote(linkForm.getNoteId()),
+                linkForm.getNote(),
                 linkForm.getDate(),
                 (User) authentication.getPrincipal()
         );
@@ -48,12 +57,17 @@ public class LinkService {
         linkRepository.delete(link);
     }
 
-    public boolean isLinkActive(Link link) {
-        return link.getExpiryDate().after(new Date());
-    }
-
-    public void renewLink(Link link, Date date) {
+    public void renewLink(Link link, Date date) throws MyLinkException {
+        if (!linkIsActive(link)) {
+            throw new MyLinkException("Link is expired", null);
+        }
         link.setExpiryDate(date);
         linkRepository.save(link);
+    }
+
+    public Link getLinkByLink(String link) {
+        return linkRepository.findByLink(link).orElseThrow(
+                () -> new EntityNotFoundException("No such link")
+        );
     }
 }

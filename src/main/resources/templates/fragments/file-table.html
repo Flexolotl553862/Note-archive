@@ -1,4 +1,5 @@
-<div th:fragment="file-table(folder)" id="file-table" th:with="canEdit=${note.canEdit(#authentication)}">
+<div th:fragment="file-table(folder)" id="file-table" th:with="canEdit=${note.canEdit(#authentication)}"
+     xmlns:sec="http://www.w3.org/1999/xhtml">
     <style>
         @media (max-width: 640px) {
             .desktop-only {
@@ -43,7 +44,7 @@
                 <td class="px-6 py-4 desktop-only"></td>
                 <td class="py-4 text-right inline-flex justify-end w-full">
                     <button th:if="${canEdit}" id="new-file" class="modal-show" data-modal="file-modal"
-                            data-href="/file/create" th:attr="data-fileparentid=${folder.id}">
+                            data-href="/file/create" th:attr="data-parent=${folder.id}">
                         <svg class="hover:text-blue-600 mr-3 w-5 h-5 text-white" aria-hidden="true"
                              xmlns="http://www.w3.org/2000/svg" width="20"
                              height="20" fill="none" viewBox="0 0 24 24">
@@ -53,7 +54,7 @@
                     </button>
 
                     <button th:if="${canEdit}" class="modal-show" id="new-directory" data-modal="directory-modal"
-                            th:attr="data-parentid=${folder.id}"
+                            th:attr="data-parent=${folder.id}"
                             data-href="/folder/create">
                         <svg class="hover:text-blue-600 mr-3 w-5 h-5 text-white" aria-hidden="true"
                              xmlns="http://www.w3.org/2000/svg" width="24"
@@ -66,14 +67,14 @@
             </tr>
 
             <!-- folders and files -->
-            <tr th:each="entry, iter : ${folder.children}"
+            <tr th:each="entry, iter : ${children}"
                 th:class="${iter.last} ?
                 'even:bg-gray-800 odd:bg-gray-900' :
                 'border-b even:bg-gray-800 odd:bg-gray-900 border-gray-700' ">
 
                 <!-- file or directory -->
                 <th scope="row" class="px-6 py-4 font-normal text-white">
-                    <a th:href="${entry.isDirectory} ? ${(prefix != null ? prefix : '') + '/folder/' + entry.id} : ${(prefix != null ? prefix : '') + '/file/' + entry.id}"
+                    <a th:href="${entry.isDirectory} ? ${(prefix != null ? prefix : '') + '/folder/' + entry.id} : ${(prefix != null ? prefix : '') + '/entry/' + entry.id}"
                        class="flex items-center space-x-2">
                         <svg th:if="${entry.isDirectory}" aria-hidden="true" focusable="false" class="text-blue-400"
                              width="16" height="16"
@@ -94,11 +95,34 @@
                 <td th:text="${#dates.format(entry.lastModified, 'dd-MM-yyyy HH:mm')}"
                     class="px-6 py-4 text text-gray-400 desktop-only"></td>
 
-                <!-- download and delete buttons -->
+                <!-- lock, download, delete buttons -->
                 <td class="py-4 text-right">
-                    <div class="flex justify-end">
+                    <div class="flex justify-end gap-2 mr-3">
+                        <button sec:authorize="isAuthenticated()" th:if="${note.author.id == #authentication.principal.id}"
+                                class="modal-show p-0 m-0"
+                                data-modal="make-private-modal"
+                                th:attr="data-message=${!entry.lock ?
+                                ('Are you sure you want to make ' + entry.name + ' private. After that only you can see it.') :
+                                ('Are you sure you want to make ' + entry.name + ' public. After that everyone can see it.')},
+                                data-lock=${!entry.lock}, data-entryid=${entry.id}">
+                            <svg th:if="${entry.lock}" class="w-5 h-5 text-white hover:text-blue-600"
+                                 aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                 fill="currentColor" viewBox="0 0 24 24">
+                                <path fill-rule="evenodd"
+                                      d="M8 10V7a4 4 0 1 1 8 0v3h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h1Zm2-3a2 2 0 1 1 4 0v3h-4V7Zm2 6a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1Z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                            <svg th:if="${!entry.lock}" class="w-5 h-5 text-white hover:text-blue-600"
+                                 aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                 fill="currentColor" viewBox="0 0 24 24">
+                                <path fill-rule="evenodd"
+                                      d="M15 7a2 2 0 1 1 4 0v4a1 1 0 1 0 2 0V7a4 4 0 0 0-8 0v3H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2V7Zm-5 6a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1Z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+
                         <a th:href="${(prefix != null ? prefix : '') + '/download/entry/' + entry.id}">
-                            <svg class="w-5 h-5 text-white mr-3 hover:text-blue-600" aria-hidden="true"
+                            <svg class="w-5 h-5 text-white hover:text-blue-600" aria-hidden="true"
                                  xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
                                  viewBox="0 0 24 24">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -110,9 +134,9 @@
                         <button th:if="${canEdit}" th:id="${entry.id}"
                                 th:name="${entry.name}" class="modal-show" data-modal="delete-modal"
                                 th:attr="data-message=${'Are you sure you want to delete ' + entry.name + '?'},
-                                data-entryid=${entry.id}, data-entryname=${entry.name}"
+                                data-entryId=${entry.id}"
                                 data-href="/delete/entry">
-                            <svg class="w-5 h-5 text-white mr-3 hover:text-blue-600" aria-hidden="true"
+                            <svg class="w-5 h-5 text-white hover:text-blue-600" aria-hidden="true"
                                  xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
                                  viewBox="0 0 24 24">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

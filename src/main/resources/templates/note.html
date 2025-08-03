@@ -29,6 +29,8 @@
 
         <div th:if="${note.canEdit(#authentication)}">
             <div th:replace="~{fragments/modals}"></div>
+
+            <div th:replace="~{fragments/make-private-modal}"></div>
         </div>
     </div>
 </main>

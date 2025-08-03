@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.notearchive.domain.StorageEntry;
 import org.springframework.web.multipart.MultipartFile;
 
 @Getter
@@ -14,5 +15,5 @@ public class FileForm {
     private MultipartFile fileCreate;
 
     @NotNull(message = "Parent folder is absent.")
-    private Long fileParentId;
+    private StorageEntry parent;
 }

@@ -1,13 +1,16 @@
 package org.example.notearchive.controller;
 
+import lombok.RequiredArgsConstructor;
+import org.example.notearchive.domain.Note;
 import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.domain.User;
 import org.example.notearchive.dto.CreateDirectoryForm;
 import org.example.notearchive.dto.FileForm;
 import org.example.notearchive.exception.StorageException;
-import org.example.notearchive.service.EntityHelper;
+import org.example.notearchive.filestorage.FileStorage;
 import org.example.notearchive.service.NoteService;
 import org.example.notearchive.service.StorageEntryService;
+import org.example.notearchive.service.UserService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,25 +19,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @Controller
 @SessionAttributes("note, user")
+@RequiredArgsConstructor
 public class NotePageController {
-    private final EntityHelper entityHelper;
-    private final StorageEntryService storageService;
+    private final StorageEntryService storageEntryService;
     private final NoteService noteService;
-
-    public NotePageController(
-            StorageEntryService storageService,
-            NoteService noteService,
-            EntityHelper entityHelper) {
-
-        this.storageService = storageService;
-        this.noteService = noteService;
-        this.entityHelper = entityHelper;
-    }
+    private final FileStorage fileStorage;
+    private final ResponseHelper responseHelper;
+    private final UserService userService;
 
     @ModelAttribute
     public void initAll(Model model) {
@@ -42,72 +37,95 @@ public class NotePageController {
         model.addAttribute("fileForm", new FileForm());
     }
 
-    @GetMapping("/note/{id}")
-    public String note(@PathVariable long id) {
-        return "redirect:/folder/" + entityHelper.getNote(id).getContent().getId();
+    @GetMapping("/note/{note}")
+    public String note(@PathVariable Note note) {
+        return "redirect:/folder/" + note.getContent().getId();
     }
 
-    @GetMapping("/note/{id}/description")
-    public String noteDescription(@PathVariable long id, Model model) {
-        model.addAttribute("note", entityHelper.getNote(id));
+    @PostMapping("/delete/note")
+    @PreAuthorize("@noteService.isNoteAuthor(#note, authentication)")
+    public ResponseEntity<Map<String, Object>> deleteNote(@RequestParam("noteId") Note note) {
+        try {
+            fileStorage.deleteNoteContent(note);
+            noteService.deleteNote(note);
+        } catch (StorageException ignored) {
+            return responseHelper.error("Could not delete note.");
+        }
+        return responseHelper.ok("Successfully deleted.", note.getTitle() + " has been deleted.");
+    }
+
+    @GetMapping("/note/{note}/description")
+    public String noteDescription(@PathVariable Note note, Model model) {
+        model.addAttribute("note", note);
         return "note-description";
     }
 
-    @GetMapping("/api/note/{id}/description")
-    public ResponseEntity<String> getMarkdownDescription(@PathVariable long id) {
-        String content;
+    @GetMapping("/api/note/{note}/description")
+    public ResponseEntity<String> getMarkdownDescription(@PathVariable Note note) {
         try {
-            content = noteService.getMarkdownDescription(entityHelper.getNote(id));
-        } catch (Exception ignored) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity
-                .ok()
-                .header(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8")
-                .body(content);
+            return ResponseEntity
+                    .ok()
+                    .header(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8")
+                    .body(noteService.getMarkdownDescription(note));
+        } catch (Exception ignored) {}
+        return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/api/note/{id}/description/generate")
-    @PreAuthorize("@userService.isNoteEditor(#id, authentication)")
-    public ResponseEntity<String> generateDescription(@PathVariable long id, @RequestParam("data") String data) {
+    @PostMapping("/api/note/{note}/description/generate")
+    @PreAuthorize("@noteService.isNoteEditor(#note, authentication)")
+    public ResponseEntity<String> generateDescription(
+            @PathVariable Note note,
+            @RequestParam("data") String userDescription
+    ) {
         try {
-            return ResponseEntity.ok(noteService.addMarkdownDescription(entityHelper.getNote(id), data));
+            return ResponseEntity.ok(noteService.addMarkdownDescription(note, userDescription));
         } catch (StorageException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    @GetMapping("/folder/{id}")
-    public String folder(@PathVariable long id, Model model) {
-        StorageEntry folder = entityHelper.getEntry(id);
+    @GetMapping("/folder/{folder}")
+    @PreAuthorize("@storageEntryService.canOpenEntry(#folder, authentication)")
+    public String folder(@PathVariable StorageEntry folder, Model model, Authentication authentication) {
+        if (!folder.isDirectory()) {
+            return "redirect:/not/found";
+        }
         model.addAllAttributes(Map.of(
-                "path", storageService.getPath(folder),
+                "path", storageEntryService.getPath(folder),
                 "folder", folder,
-                "note", folder.getParentNote()
+                "note", folder.getParentNote(),
+                "children",
+                folder.getChildren().stream().filter(e -> storageEntryService.canOpenEntry(e, authentication)).toList()
         ));
         return "note";
     }
 
-    @GetMapping("/note/{id}/editors")
-    @PreAuthorize("@userService.isNoteAuthor(#id, authentication)")
-    public String editNotePage(@PathVariable("id") long id, Model model, Authentication authentication) {
-        model.addAttribute("note", entityHelper.getNote(id));
-        List<User> editors = entityHelper.getWriters();
-        if (authentication != null && authentication.getPrincipal() != null) {
-            editors.remove((User) authentication.getPrincipal());
-        }
-        model.addAttribute("editors", editors);
+    @GetMapping("/note/{note}/editors")
+    @PreAuthorize("@noteService.isNoteAuthor(#note, authentication)")
+    public String editNotePage(@PathVariable Note note, Model model, Authentication authentication) {
+        model.addAttribute("note", note);
+        model.addAttribute("editors", userService.getWritersExceptOne((User) authentication.getPrincipal()));
         return "note-editors";
     }
 
     @PostMapping("/note/change/editors")
-    @PreAuthorize("@userService.isNoteAuthor(#noteId, authentication)")
+    @PreAuthorize("@noteService.isNoteAuthor(#note, authentication)")
     public ResponseEntity<Void> changeEditorList(
-            @RequestParam("noteId") long noteId,
-            @RequestParam("userId") long userId,
+            @RequestParam("noteId") Note note,
+            @RequestParam("userId") User user,
             @RequestParam("state") boolean state
     ) {
-        noteService.changeEditors(entityHelper.getNote(noteId), entityHelper.getUser(userId), state);
+        noteService.changeEditorState(note, user, state);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/entry/set/lock")
+    @PreAuthorize("@noteService.isNoteAuthor(#entry.parentNote, authentication)")
+    public ResponseEntity<Map<String, Object>> setLock(
+            @RequestParam("entryId") StorageEntry entry,
+            @RequestParam("lock") Boolean lock
+    ) {
+        storageEntryService.setLock(entry, lock);
+        return responseHelper.ok("Successfully updated!", "Entry has been " + (lock ? "locked" : "unlocked"));
     }
 }

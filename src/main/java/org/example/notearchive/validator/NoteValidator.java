@@ -26,6 +26,9 @@ public class NoteValidator implements Validator {
     @Override
     public void validate(@NonNull Object target, @NonNull Errors errors) {
         NoteForm noteForm = (NoteForm) target;
+        if (errors.hasErrors()) {
+            return;
+        }
         Arrays.stream(noteForm.getTitle().split("\\s+")).map(String::length).max(Integer::compareTo).ifPresent(
                 (len) -> {
                     if (len > MAX_WORD_LENGTH) {

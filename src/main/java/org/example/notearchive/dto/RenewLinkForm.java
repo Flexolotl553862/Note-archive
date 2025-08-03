@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.notearchive.domain.Link;
 
 import java.time.*;
 import java.util.Date;
@@ -20,7 +21,7 @@ public class RenewLinkForm {
     private String expiryDate;
 
     @NotNull
-    private Long linkId;
+    private Link link;
 
     public Date getDate() throws DateTimeException {
         LocalDate date = LocalDate.parse(expiryDate);

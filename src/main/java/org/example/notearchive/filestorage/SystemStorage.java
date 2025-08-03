@@ -4,13 +4,20 @@ import org.apache.tika.Tika;
 import org.example.notearchive.domain.Note;
 import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.exception.StorageException;
-import org.example.notearchive.repository.StorageEntryRepository;
-import org.example.notearchive.service.StorageEntryService;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -24,30 +31,18 @@ import java.util.zip.ZipOutputStream;
 public class SystemStorage implements FileStorage {
 
     private final String storagePath;
-    private final StorageEntryRepository storageEntryRepository;
-    private final StorageEntryService storageService;
 
-    public SystemStorage(StorageEntryRepository storageEntryRepository, StorageEntryService storageService) {
+    public SystemStorage() {
         this.storagePath = System.getenv("STORAGE_PATH");
-        this.storageEntryRepository = storageEntryRepository;
-        this.storageService = storageService;
     }
 
     @Override
     public void createDirectory(String name, StorageEntry parent) throws StorageException {
-        StorageEntry entry = new StorageEntry(
-                name,
-                Path.of(parent.getPath(), name).toString(),
-                StorageEntry.ENTRY_TYPE.DIRECTORY,
-                parent.getParentNote()
-        );
-        entry.setParent(parent);
         try {
-            Files.createDirectories(Path.of(storagePath, entry.getPath()));
+            Files.createDirectories(Path.of(storagePath, parent.getPath(), name));
         } catch (IOException e) {
-            throw new StorageException("Could not create directory: " + entry.getPath(), e);
+            throw new StorageException("Could not create directory: " + name, e);
         }
-        storageEntryRepository.save(entry);
     }
 
     @Override
@@ -89,7 +84,7 @@ public class SystemStorage implements FileStorage {
                 fis.transferTo(zos);
             }
         } else {
-            zos.putNextEntry(new ZipEntry(path.toString() + "/"));
+            zos.putNextEntry(new ZipEntry(path + "/"));
         }
         zos.closeEntry();
         for (StorageEntry child : entry.getChildren()) {
@@ -114,7 +109,6 @@ public class SystemStorage implements FileStorage {
             Path filePath = Path.of(storagePath, root.getPath(), name);
             Files.createDirectories(filePath.getParent());
             data.transferTo(new FileOutputStream(filePath.toFile()));
-            storageService.createEntry(root, name);
         } catch (IOException e) {
             throw new StorageException("Could not save file: " + e.getMessage(), e);
         }
@@ -126,7 +120,6 @@ public class SystemStorage implements FileStorage {
             Path filePath = Path.of(storagePath, root.getPath(), data.getOriginalFilename());
             Files.createDirectories(filePath.getParent());
             data.transferTo(filePath.toFile());
-            storageService.createEntry(root, data.getOriginalFilename());
         } catch (IOException e) {
             throw new StorageException("Could not save file: " + e.getMessage(), e);
         }
@@ -179,6 +172,48 @@ public class SystemStorage implements FileStorage {
         }
         addBacklinks(backlinks, root);
         return notEmpty;
+    }
+
+    @Override
+    public ResponseEntity<Resource> getEntryContentForResponse(
+            StorageEntry entry,
+            String dispositionType,
+            RedirectAttributes redirectAttributes
+    ) {
+        Tika tika = new Tika();
+        try {
+            Resource resource;
+            HttpHeaders headers = new HttpHeaders();
+            String name = entry.getName() + ".zip";
+            if (entry.isDirectory()) {
+                resource = new ByteArrayResource(getEntryContentAsZip(entry));
+                headers.setContentType(MediaType.parseMediaType("application/zip"));
+            } else {
+                File file = getEntryContent(entry);
+                resource = new FileSystemResource(file);
+                headers.setContentType(MediaType.parseMediaType(tika.detect(file)));
+                name = file.getName();
+            }
+            headers.setContentDisposition(ContentDisposition
+                    .builder(dispositionType)
+                    .filename(name, StandardCharsets.UTF_8)
+                    .build()
+            );
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+        } catch (StorageException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+        } catch (IOException e) {
+            redirectAttributes.addFlashAttribute(
+                    "message",
+                    "Could not identify file extension"
+            );
+        }
+        return ResponseEntity
+                .status(302)
+                .header(HttpHeaders.LOCATION, "/not/found")
+                .build();
     }
 
     private void addBacklinks(Map<Path, StorageEntry> backlinks, StorageEntry root) throws StorageException {

@@ -1,22 +1,16 @@
 package org.example.notearchive.controller;
 
 import jakarta.validation.Valid;
-import org.apache.tika.Tika;
-import org.example.notearchive.domain.Note;
+import lombok.RequiredArgsConstructor;
 import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.dto.CreateDirectoryForm;
 import org.example.notearchive.dto.FileForm;
 import org.example.notearchive.exception.StorageException;
 import org.example.notearchive.filestorage.FileStorage;
-import org.example.notearchive.service.EntityHelper;
+import org.example.notearchive.service.StorageEntryService;
 import org.example.notearchive.validator.CreateDirectoryValidator;
 import org.example.notearchive.validator.CreateFileValidator;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -26,31 +20,16 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Controller
+@RequiredArgsConstructor
 public class FileController {
     private final CreateDirectoryValidator createDirectoryValidator;
     private final CreateFileValidator createFileValidator;
     private final FileStorage fileStorage;
-    private final EntityHelper entityHelper;
     private final ResponseHelper responseHelper;
-
-    public FileController(
-            CreateDirectoryValidator createDirectoryValidator,
-            CreateFileValidator createFileValidator,
-            FileStorage fileStorage,
-            EntityHelper entityHelper,
-            ResponseHelper responseHelper) {
-        this.createDirectoryValidator = createDirectoryValidator;
-        this.createFileValidator = createFileValidator;
-        this.fileStorage = fileStorage;
-        this.entityHelper = entityHelper;
-        this.responseHelper = responseHelper;
-    }
+    private final StorageEntryService storageEntryService;
 
     @ModelAttribute
     public void initForms(Model model, Authentication authentication) {
@@ -61,52 +40,32 @@ public class FileController {
         }
     }
 
-    @GetMapping("/file/{id}")
-    public ResponseEntity<Resource> openFile(@PathVariable long id, RedirectAttributes redirectAttributes) {
-        return getFileForResponse(id, "inline", redirectAttributes);
+    @GetMapping("/entry/{entry}")
+    @PreAuthorize("@storageEntryService.canOpenEntry(#entry, authentication)")
+    public ResponseEntity<Resource> openEntry(@PathVariable StorageEntry entry, RedirectAttributes redirectAttributes) {
+        return fileStorage.getEntryContentForResponse(entry, "inline", redirectAttributes);
     }
 
-    @GetMapping("/download/file/{id}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable long id, RedirectAttributes redirectAttributes) {
-        return getFileForResponse(id, "attachment", redirectAttributes);
-    }
-
-    @GetMapping("/download/entry/{id}")
-    public ResponseEntity<Resource> downloadEntry(@PathVariable long id, RedirectAttributes redirectAttributes) {
-        return getFileForResponse(id, "attachment", redirectAttributes);
+    @GetMapping("/download/entry/{entry}")
+    @PreAuthorize("@storageEntryService.canOpenEntry(#entry, authentication)")
+    public ResponseEntity<Resource> downloadEntry(@PathVariable StorageEntry entry, RedirectAttributes redirectAttributes) {
+        return fileStorage.getEntryContentForResponse(entry, "attachment", redirectAttributes);
     }
 
     @PostMapping("/delete/entry")
-    @PreAuthorize("@userService.canChangeEntry(#entryId, authentication)")
-    public ResponseEntity<Map<String, Object>> deleteEntry(
-            @RequestParam("entryId") long entryId,
-            @RequestParam("entryName") String entryName
-    ) {
-        StorageEntry entry = entityHelper.getEntry(entryId);
+    @PreAuthorize("@storageEntryService.canChangeEntry(#entry, authentication)")
+    public ResponseEntity<Map<String, Object>> deleteEntry(@RequestParam("entryId") StorageEntry entry) {
         try {
             fileStorage.deleteEntryContent(entry);
-            entityHelper.getStorageEntryRepository().delete(entry);
+            storageEntryService.deleteEntry(entry);
         } catch (StorageException e) {
-            return responseHelper.error("Could not delete " + entryName);
+            return responseHelper.error("Could not delete " + entry.getName());
         }
-        return responseHelper.ok("Successfully deleted.", entryName + " has been deleted.");
-    }
-
-    @PostMapping("/delete/note")
-    @PreAuthorize("@userService.isNoteAuthor(#noteId, authentication)")
-    public ResponseEntity<Map<String, Object>> deleteNote(@RequestParam("noteId") long noteId) {
-        Note note = entityHelper.getNote(noteId);
-        try {
-            fileStorage.deleteNoteContent(note);
-            entityHelper.getNoteRepository().delete(note);
-        } catch (StorageException ignored) {
-            return responseHelper.error("Could not delete note.");
-        }
-        return responseHelper.ok("Successfully deleted.", note.getTitle() + " has been deleted.");
+        return responseHelper.ok("Successfully deleted.", entry.getName() + " has been deleted.");
     }
 
     @PostMapping("/folder/create")
-    @PreAuthorize("@userService.canChangeEntry(#createDirectoryForm.parentId, authentication)")
+    @PreAuthorize("@storageEntryService.canChangeEntry(#createDirectoryForm.parent, authentication)")
     public ResponseEntity<Map<String, Object>> createDirectory(
             @Valid @ModelAttribute CreateDirectoryForm createDirectoryForm,
             BindingResult bindingResult
@@ -118,7 +77,12 @@ public class FileController {
         try {
             fileStorage.createDirectory(
                     createDirectoryForm.getDirectoryName(),
-                    entityHelper.getEntry(createDirectoryForm.getParentId())
+                    createDirectoryForm.getParent()
+            );
+            storageEntryService.createEntry(
+                    createDirectoryForm.getParent(),
+                    createDirectoryForm.getDirectoryName(),
+                    StorageEntry.ENTRY_TYPE.DIRECTORY
             );
         } catch (StorageException ignored) {
             return responseHelper.error("Could not create " + createDirectoryForm.getDirectoryName() + ".");
@@ -130,7 +94,7 @@ public class FileController {
     }
 
     @PostMapping("/file/create")
-    @PreAuthorize("@userService.canChangeEntry(#fileForm.fileParentId, authentication)")
+    @PreAuthorize("@storageEntryService.canChangeEntry(#fileForm.parent, authentication)")
     public ResponseEntity<Map<String, Object>> createFile(
             @Valid @ModelAttribute FileForm fileForm,
             BindingResult bindingResult
@@ -140,7 +104,12 @@ public class FileController {
             return responseHelper.error(bindingResult.getFieldError().getDefaultMessage());
         }
         try {
-            fileStorage.saveAsFile(fileForm.getFileCreate(), entityHelper.getEntry(fileForm.getFileParentId()));
+            fileStorage.saveAsFile(fileForm.getFileCreate(), fileForm.getParent());
+            storageEntryService.createEntry(
+                    fileForm.getParent(),
+                    fileForm.getFileCreate().getOriginalFilename(),
+                    StorageEntry.ENTRY_TYPE.FILE
+            );
         } catch (StorageException ignored) {
             return responseHelper.error("Could not create " + fileForm.getFileCreate().getOriginalFilename() + ".");
         }
@@ -148,47 +117,5 @@ public class FileController {
                 "Successfully added.",
                 fileForm.getFileCreate().getOriginalFilename() + " has been added."
         );
-    }
-
-    private ResponseEntity<Resource> getFileForResponse(
-            long id,
-            String dispositionType,
-            RedirectAttributes redirectAttributes
-    ) {
-        Tika tika = new Tika();
-        try {
-            StorageEntry entry = entityHelper.getEntry(id);
-            Resource resource;
-            HttpHeaders headers = new HttpHeaders();
-            String name = entry.getName() + ".zip";
-            if (entry.isDirectory()) {
-                resource = new ByteArrayResource(fileStorage.getEntryContentAsZip(entry));
-                headers.setContentType(MediaType.parseMediaType("application/zip"));
-            } else {
-                File file = fileStorage.getEntryContent(entityHelper.getEntry(id));
-                resource = new FileSystemResource(file);
-                headers.setContentType(MediaType.parseMediaType(tika.detect(file)));
-                name = file.getName();
-            }
-            headers.setContentDisposition(ContentDisposition
-                    .builder(dispositionType)
-                    .filename(name, StandardCharsets.UTF_8)
-                    .build()
-            );
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(resource);
-        } catch (StorageException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
-        } catch (IOException e) {
-            redirectAttributes.addFlashAttribute(
-                    "message",
-                    "Could not identify file extension"
-            );
-        }
-        return ResponseEntity
-                .status(302)
-                .header(HttpHeaders.LOCATION, "/not/found")
-                .build();
     }
 }

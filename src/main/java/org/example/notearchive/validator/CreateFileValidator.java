@@ -2,20 +2,12 @@ package org.example.notearchive.validator;
 
 import org.example.notearchive.domain.StorageEntry;
 import org.example.notearchive.dto.FileForm;
-import org.example.notearchive.repository.StorageEntryRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
-import java.util.Optional;
-
 @Component
 public class CreateFileValidator implements Validator {
-    private final StorageEntryRepository storageEntryRepository;
-
-    public CreateFileValidator(StorageEntryRepository storageEntryRepository) {
-        this.storageEntryRepository = storageEntryRepository;
-    }
 
     @Override
     public boolean supports(Class<?> clazz) {
@@ -31,11 +23,9 @@ public class CreateFileValidator implements Validator {
         if (fileForm.getFileCreate().isEmpty()) {
             errors.rejectValue("fileCreate", "fileCreate.empty", "File is empty.");
         }
-        Optional<StorageEntry> parent = storageEntryRepository.findById(fileForm.getFileParentId());
+        StorageEntry parent = fileForm.getParent();
         String fileName = fileForm.getFileCreate().getOriginalFilename();
-        if (parent.isEmpty()) {
-            errors.rejectValue("parentId", "parentFolder.not.found", "Could not add file.");
-        } else if (parent.get().getChildren().stream().anyMatch(entry -> entry.getName().equals(fileName))) {
+        if (parent.getChildren().stream().anyMatch(entry -> entry.getName().equals(fileName))) {
             errors.rejectValue("fileCreate", "fileCreate.exists", "File already exists.");
         }
     }

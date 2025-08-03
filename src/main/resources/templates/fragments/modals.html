@@ -35,7 +35,6 @@
                                   class="modal-form inline-flex items-center"
                                   method="post" data-modal="delete-modal">
                                 <input type="hidden" name="entryId">
-                                <input type="hidden" name="entryName">
                                 <button type="submit"
                                         class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                                     Yes, I'm sure
@@ -92,7 +91,7 @@
                              th:insert="~{fragments/form-field :: form-field('directoryName', 'Directory name', 'text', '')}"></div>
 
                         <div class="hidden"
-                             th:insert="~{fragments/form-field :: form-field('parentId', 'Parent id', 'number', '')}"></div>
+                             th:insert="~{fragments/form-field :: form-field('parent', 'Parent id', 'number', '')}"></div>
 
                         <button id="new-directory-create"
                                 class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
@@ -149,7 +148,7 @@
                              th:insert="~{fragments/file-input :: file-input('fileCreate', 'upload a file. Maximal size is 500 Mb.')}"></div>
 
                         <div class="hidden"
-                             th:insert="~{fragments/form-field :: form-field('fileParentId', 'Parent id', 'number', '')}"></div>
+                             th:insert="~{fragments/form-field :: form-field('parent', 'Parent id', 'number', '')}"></div>
                         <button id="new-file-create"
                                 class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                             <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
