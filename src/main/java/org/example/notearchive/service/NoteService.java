@@ -8,6 +8,7 @@ import org.example.notearchive.dto.NoteForm;
 import org.example.notearchive.exception.StorageException;
 import org.example.notearchive.filestorage.FileStorage;
 import org.example.notearchive.repository.NoteRepository;
+import org.example.notearchive.repository.StorageEntryRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ public class NoteService {
     private final StorageEntryService storageEntryService;
     private final FileStorage fileStorage;
     private final AIService aiService;
+    private final StorageEntryRepository storageEntryRepository;
 
     public void addNote(NoteForm noteForm, User author) throws StorageException {
         Note note = new Note(
@@ -38,6 +40,7 @@ public class NoteService {
                 StorageEntry.ENTRY_TYPE.DIRECTORY,
                 note
         );
+        storageEntryRepository.save(entry);
         note.setContent(entry);
         if (!fileStorage.tryToSaveAsNestedFolders(noteForm.getFile(), entry)) {
             fileStorage.saveAsFile(noteForm.getFile(), entry);

@@ -23,6 +23,8 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -31,15 +33,23 @@ import java.util.zip.ZipOutputStream;
 public class SystemStorage implements FileStorage {
 
     private final String storagePath;
+    private final ConcurrentMap<Long, Object> entryLock;
 
     public SystemStorage() {
         this.storagePath = System.getenv("STORAGE_PATH");
+        this.entryLock = new ConcurrentHashMap<>();
+    }
+
+    private Object getLock(Long id) {
+        return entryLock.computeIfAbsent(id, entryId -> new Object());
     }
 
     @Override
     public void createDirectory(String name, StorageEntry parent) throws StorageException {
         try {
-            Files.createDirectories(Path.of(storagePath, parent.getPath(), name));
+            synchronized (getLock(parent.getId())) {
+                Files.createDirectories(Path.of(storagePath, parent.getPath(), name));
+            }
         } catch (IOException e) {
             throw new StorageException("Could not create directory: " + name, e);
         }
@@ -60,10 +70,11 @@ public class SystemStorage implements FileStorage {
     @Override
     public byte[] getEntryContentAsZip(StorageEntry entry) throws StorageException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
-            ZipOutputStream zos = new ZipOutputStream(baos);
-            getZip(entry, zos, new StringBuilder());
-            zos.finish();
+        try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+            synchronized (getLock(entry.getId())) {
+                getZip(entry, zos, new StringBuilder());
+                zos.finish();
+            }
         } catch (IOException e) {
             throw new StorageException("Could not find zip file: " + entry.getPath(), e);
         }
@@ -95,20 +106,26 @@ public class SystemStorage implements FileStorage {
 
     @Override
     public void deleteEntryContent(StorageEntry entry) {
-        FileSystemUtils.deleteRecursively(new File(storagePath, entry.getPath()));
+        synchronized (getLock(entry.getId())) {
+            FileSystemUtils.deleteRecursively(new File(storagePath, entry.getPath()));
+        }
     }
 
     @Override
     public void deleteNoteContent(Note note) {
-        FileSystemUtils.deleteRecursively(new File(storagePath, note.getContent().getPath()));
+        synchronized (getLock(note.getContent().getId())) {
+            FileSystemUtils.deleteRecursively(new File(storagePath, note.getContent().getPath()));
+        }
     }
 
     @Override
     public void saveAsFile(InputStream data, String name, StorageEntry root) throws StorageException {
         try {
-            Path filePath = Path.of(storagePath, root.getPath(), name);
-            Files.createDirectories(filePath.getParent());
-            data.transferTo(new FileOutputStream(filePath.toFile()));
+            synchronized (getLock(root.getId())) {
+                Path filePath = Path.of(storagePath, root.getPath(), name);
+                Files.createDirectories(filePath.getParent());
+                data.transferTo(new FileOutputStream(filePath.toFile()));
+            }
         } catch (IOException e) {
             throw new StorageException("Could not save file: " + e.getMessage(), e);
         }
@@ -117,9 +134,11 @@ public class SystemStorage implements FileStorage {
     @Override
     public void saveAsFile(MultipartFile data, StorageEntry root) throws StorageException {
         try {
-            Path filePath = Path.of(storagePath, root.getPath(), data.getOriginalFilename());
-            Files.createDirectories(filePath.getParent());
-            data.transferTo(filePath.toFile());
+            synchronized (getLock(root.getId())) {
+                Path filePath = Path.of(storagePath, root.getPath(), data.getOriginalFilename());
+                Files.createDirectories(filePath.getParent());
+                data.transferTo(filePath.toFile());
+            }
         } catch (IOException e) {
             throw new StorageException("Could not save file: " + e.getMessage(), e);
         }
@@ -141,34 +160,36 @@ public class SystemStorage implements FileStorage {
 
         Map<Path, StorageEntry> backlinks = new HashMap<>();
         boolean notEmpty = false;
-        try {
-            backlinks.put(Path.of(root.getPath()), root);
-            ZipEntry ze;
-            while ((ze = zis.getNextEntry()) != null) {
-                notEmpty = true;
-                Path curpath = Path.of(storagePath, root.getPath(), ze.getName());
-                if (ze.isDirectory()) {
-                    Files.createDirectories(curpath);
-                } else {
-                    Files.createDirectories(curpath.getParent());
-                    File createdFile = Files.createFile(curpath).toFile();
-                    zis.transferTo(new FileOutputStream(createdFile));
+        synchronized (getLock(root.getId())) {
+            try {
+                backlinks.put(Path.of(root.getPath()), root);
+                ZipEntry ze;
+                while ((ze = zis.getNextEntry()) != null) {
+                    notEmpty = true;
+                    Path curpath = Path.of(storagePath, root.getPath(), ze.getName());
+                    if (ze.isDirectory()) {
+                        Files.createDirectories(curpath);
+                    } else {
+                        Files.createDirectories(curpath.getParent());
+                        File createdFile = Files.createFile(curpath).toFile();
+                        zis.transferTo(new FileOutputStream(createdFile));
+                    }
+                    Path entryPath = Path.of(root.getPath(), ze.getName());
+                    backlinks.put(
+                            entryPath,
+                            new StorageEntry(
+                                    curpath.toFile().getName(),
+                                    entryPath.toFile().getPath(),
+                                    ze.isDirectory() ? StorageEntry.ENTRY_TYPE.DIRECTORY : StorageEntry.ENTRY_TYPE.FILE,
+                                    root.getParentNote()
+                            )
+                    );
                 }
-                Path entryPath = Path.of(root.getPath(), ze.getName());
-                backlinks.put(
-                        entryPath,
-                        new StorageEntry(
-                                curpath.toFile().getName(),
-                                entryPath.toFile().getPath(),
-                                ze.isDirectory() ? StorageEntry.ENTRY_TYPE.DIRECTORY : StorageEntry.ENTRY_TYPE.FILE,
-                                root.getParentNote()
-                        )
-                );
+            } catch (IOException e) {
+                throw new StorageException("Could not save: " + e.getMessage(), e);
+            } catch (InvalidPathException e) {
+                throw new StorageException("Invalid path: " + e.getMessage(), e);
             }
-        } catch (IOException e) {
-            throw new StorageException("Could not save: " + e.getMessage(), e);
-        } catch (InvalidPathException e) {
-            throw new StorageException("Invalid path: " + e.getMessage(), e);
         }
         addBacklinks(backlinks, root);
         return notEmpty;
