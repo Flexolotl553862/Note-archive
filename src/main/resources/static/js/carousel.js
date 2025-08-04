@@ -17,8 +17,6 @@ function recalculateLayout() {
     const containerWidth = cardMenu.offsetWidth - 2 * document.querySelector('.left-btn-wrapper').offsetWidth;
     const containerHeight = cardMenu.offsetHeight;
 
-    console.log(containerWidth, containerHeight);
-
     cols = Math.max(1, Math.floor((containerWidth - 60) / width));
     rows = Math.max(1, Math.floor((containerHeight - 40) / height));
     k = rows * cols;
