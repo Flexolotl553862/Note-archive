@@ -38,7 +38,11 @@ public class LinkPageController {
         if (bindingResult.hasErrors()) {
             return responseHelper.error(bindingResult.getFieldError().getDefaultMessage());
         }
-        linkService.generateLink(linkForm, authentication);
+        try {
+            linkService.generateLink(linkForm, authentication);
+        } catch (MyLinkException e) {
+            return responseHelper.error("Link generation failed");
+        }
         return responseHelper.ok("Successfully created", "Link has been created!");
     }
 

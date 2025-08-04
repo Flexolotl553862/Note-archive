@@ -9,6 +9,7 @@ import org.example.notearchive.domain.User;
 import org.example.notearchive.dto.LinkForm;
 import org.example.notearchive.exception.MyLinkException;
 import org.example.notearchive.repository.LinkRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -38,19 +39,27 @@ public class LinkService {
         return canOpenNoteByLink(entry.getParentNote(), link) && !entry.getLock();
     }
 
-    public void generateLink(LinkForm linkForm, Authentication authentication) {
-        String slug = UUID.randomUUID().toString();
-        while (linkRepository.existsByLink(slug)) {
-            slug = UUID.randomUUID().toString();
+    public void generateLink(LinkForm linkForm, Authentication authentication) throws MyLinkException {
+        int attempts = 10;
+        while(attempts > 0) {
+            try {
+                String slug = UUID.randomUUID().toString();
+                Link link = new Link(
+                        slug,
+                        linkForm.getDescription(),
+                        linkForm.getNote(),
+                        linkForm.getDate(),
+                        (User) authentication.getPrincipal()
+                );
+                linkRepository.save(link);
+                attempts = 0;
+            } catch (DataIntegrityViolationException ignored) {
+                attempts--;
+            }
         }
-        Link link = new Link(
-                slug,
-                linkForm.getDescription(),
-                linkForm.getNote(),
-                linkForm.getDate(),
-                (User) authentication.getPrincipal()
-        );
-        linkRepository.save(link);
+        if (attempts != 0) {
+            throw new MyLinkException("Could not generate new slug after 10 attempts", null);
+        }
     }
 
     public void deleteLink(Link link) {
