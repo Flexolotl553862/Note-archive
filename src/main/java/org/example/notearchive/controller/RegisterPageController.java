@@ -3,6 +3,7 @@ package org.example.notearchive.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.example.notearchive.dto.RegisterForm;
 import org.example.notearchive.service.UserService;
 import org.example.notearchive.validator.RegisterFormValidator;
@@ -22,21 +23,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
+@RequiredArgsConstructor
 public class RegisterPageController {
     private final RegisterFormValidator formValidator;
     private final UserService userService;
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
     private final AuthenticationManager authenticationManager;
-
-    public RegisterPageController(
-            RegisterFormValidator formValidator,
-            UserService userService,
-            AuthenticationManager authenticationManager
-    ) {
-        this.formValidator = formValidator;
-        this.userService = userService;
-        this.authenticationManager = authenticationManager;
-    }
 
     @ModelAttribute
     public void addRegisterForm(Model model) {

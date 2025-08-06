@@ -32,5 +32,8 @@ public class RegisterFormValidator implements Validator {
         if (userRepository.existsByLogin(form.getLogin())) {
             errors.rejectValue("login", "login.already.exists", "Login already exists");
         }
+        if (userRepository.existsByEmail(form.getEmail())) {
+            errors.rejectValue("email", "email.already.exists", "Email already exists");
+        }
     }
 }
