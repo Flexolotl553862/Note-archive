@@ -18,4 +18,6 @@ public interface UserRepository extends CrudRepository<User, Long> {
     Optional<User> findByLoginOrEmail(String login, String email);
 
     Iterable<User> findByRole(User.@NotNull Role role);
+
+    boolean existsByEmail(String email);
 }
