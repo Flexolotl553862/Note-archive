@@ -179,7 +179,6 @@ public class SystemStorage implements FileStorage {
                             entryPath,
                             new StorageEntry(
                                     curpath.toFile().getName(),
-                                    entryPath.toFile().getPath(),
                                     ze.isDirectory() ? StorageEntry.ENTRY_TYPE.DIRECTORY : StorageEntry.ENTRY_TYPE.FILE,
                                     root.getParentNote()
                             )

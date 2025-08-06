@@ -9,8 +9,10 @@ import lombok.Setter;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -25,9 +27,6 @@ public class StorageEntry extends AbstractEntity {
 
     @NotBlank
     private String name;
-
-    @NotBlank
-    private String path;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<StorageEntry> children;
@@ -52,9 +51,8 @@ public class StorageEntry extends AbstractEntity {
         return type == ENTRY_TYPE.DIRECTORY;
     }
 
-    public StorageEntry(String name, String path, ENTRY_TYPE type, Note parentNote) {
+    public StorageEntry(String name, ENTRY_TYPE type, Note parentNote) {
         this.name = name;
-        this.path = path;
         this.type = type;
         this.lock = false;
         this.parentNote = parentNote;
@@ -65,5 +63,24 @@ public class StorageEntry extends AbstractEntity {
             children = new ArrayList<>();
         }
         children.add(child);
+    }
+
+    private void getPath(StorageEntry entry, List<StorageEntry> path) {
+        path.add(entry);
+        if (entry.getParent() != null) {
+            getPath(entry.getParent(), path);
+        } else {
+            Collections.reverse(path);
+        }
+    }
+
+    public List<StorageEntry> getPathAsEntryList() {
+        List<StorageEntry> path = new ArrayList<>();
+        getPath(this, path);
+        return path;
+    }
+
+    public String getPath() {
+        return getPathAsEntryList().stream().map(StorageEntry::getName).collect(Collectors.joining("/"));
     }
 }

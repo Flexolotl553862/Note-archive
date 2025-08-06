@@ -56,7 +56,7 @@ public class LinkAccessController {
             return "redirect:/not/found";
         }
         model.addAllAttributes(Map.of(
-                "path", storageEntryService.getPath(folder),
+                "path", folder.getPathAsEntryList(),
                 "folder", folder,
                 "note", folder.getParentNote(),
                 "children", storageEntryService.getAccessibleChildren(folder, myLinkService.getLinkByLink(slug))

@@ -9,9 +9,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -19,25 +16,9 @@ import java.util.List;
 public class StorageEntryService {
     private final StorageEntryRepository storageEntryRepository;
 
-    public void getPath(StorageEntry entry, List<StorageEntry> path) {
-        path.add(entry);
-        if (entry.getParent() != null) {
-            getPath(entry.getParent(), path);
-        } else {
-            Collections.reverse(path);
-        }
-    }
-
-    public List<StorageEntry> getPath(StorageEntry entry) {
-        List<StorageEntry> path = new ArrayList<>();
-        getPath(entry, path);
-        return path;
-    }
-
     public void createEntry(StorageEntry root, String name, StorageEntry.ENTRY_TYPE type) {
         StorageEntry entry = new StorageEntry(
                 name,
-                Path.of(root.getPath(), name).toFile().getPath(),
                 type,
                 root.getParentNote()
         );

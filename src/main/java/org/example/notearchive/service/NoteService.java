@@ -36,7 +36,6 @@ public class NoteService {
         );
         StorageEntry entry = new StorageEntry(
                 noteForm.getTitle(),
-                File.separator + noteForm.getTitle(),
                 StorageEntry.ENTRY_TYPE.DIRECTORY,
                 note
         );
