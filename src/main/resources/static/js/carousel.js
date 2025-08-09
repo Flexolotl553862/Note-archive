@@ -1,4 +1,4 @@
-let pt = 0;
+let left = 0, right = 0;
 
 const container = document.querySelector('.card-container');
 const cardMenu = document.querySelector('.card-menu');
@@ -7,7 +7,7 @@ const rightBtn = document.querySelector('.right-btn');
 const notes = Array.from(container.children).filter(n => n.classList.contains('card-wrapper'));
 const n = notes.length;
 
-let width, height, cols, rows, k;
+let width, height, cols, rows, k, lock = false;
 
 function recalculateLayout() {
     if (n === 0) return;
@@ -20,21 +20,21 @@ function recalculateLayout() {
     cols = Math.max(1, Math.floor((containerWidth - 60) / width));
     rows = Math.max(1, Math.floor((containerHeight - 40) / height));
     k = rows * cols;
-
-    if (pt >= n) pt = 0; // prevent overflow
 }
 
-function showGroup(start) {
+function showGroup() {
     notes.forEach(note => note.classList.remove('visible'));
-    for (let i = start; i < start + k && i < n; i++) {
+    for (let i = left; i <= right; i++) {
         notes[i].classList.add('visible');
     }
-    if (pt + k >= n) {
+    let input = document.getElementById('search-input').value;
+    let hideButtons = input !== null && input !== '' && input !== 'All notes';
+    if (right === n - 1 || hideButtons) {
         rightBtn.style.visibility = 'hidden';
     } else {
         rightBtn.style.visibility = 'visible';
     }
-    if (pt - k < 0) {
+    if (left === 0 || hideButtons) {
         leftBtn.style.visibility = 'hidden';
     } else {
         leftBtn.style.visibility = 'visible';
@@ -43,33 +43,33 @@ function showGroup(start) {
 
 function refreshCarousel() {
     recalculateLayout();
-    showGroup(pt);
+    showGroup();
 }
 
 window.addEventListener('load', function () {
-    refreshCarousel();
+    recalculateLayout();
+    left = 0;
+    right = Math.min(n - 1, k - 1);
+    showGroup();
 });
 
 window.addEventListener('resize', function () {
-    notes.forEach(note => note.classList.remove('visible'));
     refreshCarousel();
 });
 
 $(function () {
     leftBtn.addEventListener('click', function (event) {
         event.preventDefault();
-        if (pt >= k) {
-            pt -= k;
-            showGroup(pt);
-        }
+        right = left - 1;
+        left = Math.max(0, right - k + 1);
+        showGroup()
     });
 
     rightBtn.addEventListener('click', function (event) {
         event.preventDefault();
-        if (pt + k < n) {
-            pt += k;
-            showGroup(pt);
-        }
+        left = right + 1;
+        right = Math.min(n - 1, left + k - 1);
+        showGroup()
     });
 
     const comboBoxEl = document.querySelector('[data-hs-combo-box]');
@@ -80,14 +80,15 @@ $(function () {
             if (input.value !== '') {
                 if (input.value !== 'All notes') {
                     for (let i = 0; i < notes.length; i++) {
-                        notes[i].classList.toggle('visible', notes[i].id === input.value + '-frame');
+                        if (notes[i].id === input.value + '-frame') {
+                            left = i;
+                            right = i;
+                            showGroup()
+                        }
                     }
-                    leftBtn.classList.add('hidden');
-                    rightBtn.classList.add('hidden');
                 } else {
-                    pt = 0;
-                    leftBtn.classList.remove('hidden');
-                    rightBtn.classList.remove('hidden');
+                    left = 0;
+                    right = Math.min(n - 1, k - 1);
                     refreshCarousel();
                 }
             }
