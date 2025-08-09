@@ -87,6 +87,10 @@ $(function () {
             event.preventDefault();
             data = new FormData(form);
             let url = modalData.get(form.dataset.modal).href;
+            let type = modalData.get(form.dataset.modal).type;
+            if (type == null || type === '') {
+                type = form.dataset.type;
+            }
             if (url === '' || url === undefined) {
                 url = form.getAttribute('action')
             }
@@ -97,7 +101,7 @@ $(function () {
             }
             $.ajax({
                 url: url,
-                type: "POST",
+                type: type ? type : "POST",
                 data: data,
                 processData: false,
                 contentType: false,

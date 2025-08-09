@@ -28,7 +28,7 @@
                     <!-- Modal body -->
                     <div class="p-4 pt-0">
                         <form th:action="@{/generate/link}" method="post" th:object="${linkForm}"
-                              class="modal-form" data-modal="link-modal">
+                              class="modal-form" data-modal="link-modal" data-type="PUT">
                             <div class="grid gap-4 grid-cols-2 sm:gap-4">
                                 <div class="w-full">
                                     <div th:replace="~{fragments/form-field :: form-field('expiryDate', 'Expiry Date', 'date', 'save-input')}"></div>

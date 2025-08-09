@@ -52,7 +52,7 @@ public class FileController {
         return fileStorage.getEntryContentForResponse(entry, "attachment", redirectAttributes);
     }
 
-    @PostMapping("/delete/entry")
+    @DeleteMapping("/delete/entry")
     @PreAuthorize("@storageEntryService.canChangeEntry(#entry, authentication)")
     public ResponseEntity<Map<String, Object>> deleteEntry(@RequestParam("entryId") StorageEntry entry) {
         try {
@@ -64,7 +64,7 @@ public class FileController {
         return responseHelper.ok("Successfully deleted.", entry.getName() + " has been deleted.");
     }
 
-    @PostMapping("/folder/create")
+    @PutMapping("/folder/create")
     @PreAuthorize("@storageEntryService.canChangeEntry(#createDirectoryForm.parent, authentication)")
     public ResponseEntity<Map<String, Object>> createDirectory(
             @Valid @ModelAttribute CreateDirectoryForm createDirectoryForm,
@@ -93,7 +93,7 @@ public class FileController {
         );
     }
 
-    @PostMapping("/file/create")
+    @PutMapping("/file/create")
     @PreAuthorize("@storageEntryService.canChangeEntry(#fileForm.parent, authentication)")
     public ResponseEntity<Map<String, Object>> createFile(
             @Valid @ModelAttribute FileForm fileForm,

@@ -33,7 +33,7 @@
                             <h3 id="delete-modal-msg" class="mb-5 text-lg font-normal text-gray-300"></h3>
                             <form id="sure-to-delete" th:action="@{/delete/entry}"
                                   class="modal-form inline-flex items-center"
-                                  method="post" data-modal="delete-modal">
+                                  method="post" data-modal="delete-modal" data-type="DELETE">
                                 <input type="hidden" name="entryId">
                                 <button type="submit"
                                         class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
@@ -86,7 +86,7 @@
                     </div>
                     <!-- Modal body -->
                     <form th:object="${createDirectoryForm}" th:action="@{/folder/create}" method="post"
-                          class="modal-form p-4 md:p-5" id="directory-form" data-modal="directory-modal">
+                          class="modal-form p-4 md:p-5" id="directory-form" data-modal="directory-modal" data-type="PUT">
                         <div class="mb-5"
                              th:insert="~{fragments/form-field :: form-field('directoryName', 'Directory name', 'text', '')}"></div>
 
@@ -143,7 +143,7 @@
                     </div>
                     <!-- Modal body -->
                     <form th:action="@{/file/create}" th:object="${fileForm}" method="post" class="modal-form p-4 md:p-5"
-                          id="file-form" data-modal="file-modal">
+                          id="file-form" data-modal="file-modal" data-type="PUT">
                         <div class="mb-5"
                              th:insert="~{fragments/file-input :: file-input('fileCreate', 'upload a file. Maximal size is 500 Mb.')}"></div>
 

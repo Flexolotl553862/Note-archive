@@ -88,7 +88,7 @@
         input.addEventListener('click', function (event) {
             $.ajax({
                 url: "/note/change/editors",
-                type: "POST",
+                type: "PATCH",
                 data: {
                     "_csrf": document.getElementsByName('_csrf')[0].value,
                     "noteId": input.name,

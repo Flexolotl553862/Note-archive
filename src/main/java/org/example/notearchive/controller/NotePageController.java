@@ -42,7 +42,7 @@ public class NotePageController {
         return "redirect:/folder/" + note.getContent().getId();
     }
 
-    @PostMapping("/delete/note")
+    @DeleteMapping("/delete/note")
     @PreAuthorize("@noteService.isNoteAuthor(#note, authentication)")
     public ResponseEntity<Map<String, Object>> deleteNote(@RequestParam("noteId") Note note) {
         try {
@@ -108,7 +108,7 @@ public class NotePageController {
         return "note-editors";
     }
 
-    @PostMapping("/note/change/editors")
+    @PatchMapping("/note/change/editors")
     @PreAuthorize("@noteService.isNoteAuthor(#note, authentication)")
     public ResponseEntity<Void> changeEditorList(
             @RequestParam("noteId") Note note,
@@ -119,7 +119,7 @@ public class NotePageController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/entry/set/lock")
+    @PatchMapping("/entry/set/lock")
     @PreAuthorize("@noteService.isNoteAuthor(#entry.parentNote, authentication)")
     public ResponseEntity<Map<String, Object>> setLock(
             @RequestParam("entryId") StorageEntry entry,

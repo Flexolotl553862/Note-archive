@@ -27,7 +27,7 @@ public class LinkPageController {
     private final LinkValidator linkValidator;
     private final ResponseHelper responseHelper;
 
-    @PostMapping("/generate/link")
+    @PutMapping("/generate/link")
     @PreAuthorize("@noteService.isNoteEditor(#linkForm.note, authentication)")
     public ResponseEntity<Map<String, Object>> generateLink(
             @Valid @ModelAttribute LinkForm linkForm,
@@ -46,14 +46,14 @@ public class LinkPageController {
         return responseHelper.ok("Successfully created", "Link has been created!");
     }
 
-    @PostMapping("/delete/link")
+    @DeleteMapping("/delete/link")
     @PreAuthorize("@myLinkService.isLinkAuthor(#link, authentication)")
     public ResponseEntity<Map<String, Object>> deleteLink(@RequestParam Link link) {
         linkService.deleteLink(link);
         return responseHelper.ok("Successfully deleted", "Link has been deleted!");
     }
 
-    @PostMapping("/renew/link")
+    @PatchMapping("/renew/link")
     @PreAuthorize("@myLinkService.isLinkAuthor(#renewLinkForm.link, authentication)")
     public ResponseEntity<Map<String, Object>> renewLink(@ModelAttribute RenewLinkForm renewLinkForm) {
         try {

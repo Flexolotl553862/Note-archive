@@ -67,9 +67,6 @@ public class LinkService {
     }
 
     public void renewLink(Link link, Date date) throws MyLinkException {
-        if (!linkIsActive(link)) {
-            throw new MyLinkException("Link is expired", null);
-        }
         link.setExpiryDate(date);
         linkRepository.save(link);
     }
