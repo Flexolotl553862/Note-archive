@@ -17,7 +17,7 @@
 
 
 
-Ссылка на текущую версию: https://note-archive.duckdns.org
+Ссылка на текущую версию: https://note-archive.site
 
 ## Используемые технологии
 
