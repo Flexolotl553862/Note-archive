@@ -1,0 +1,20 @@
+services:
+  backend:
+    build: .
+    container_name: note-archive
+    ports:
+      - "443:443"
+    volumes:
+      - app-data:/note-archive/data
+      - app-db:/note-archive/db
+      - app-tmp:/note-archive/tmp
+      - app-certs:/note-archive/certs
+      - app-logs:/note-archive/logs
+    env_file: "note-archive.env"
+
+volumes:
+  app-data:
+  app-db:
+  app-tmp:
+  app-certs:
+  app-logs:
